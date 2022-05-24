@@ -15,6 +15,7 @@ let btn = PaginationButton(current_page);
 pagination_element.appendChild(btn);
 page_to_tasks_map.set(current_page, tasks);
 
+console.log("ex2 check")
 function updatePages() {
   if (page_to_tasks_map.get(last_page).length === 0) {
     page_to_tasks_map.delete(last_page);
