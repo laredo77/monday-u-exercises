@@ -1,0 +1,256 @@
+import { PokemonClient } from "./PokemonClient.js";
+import { View } from "./View.js";
+
+export class ItemManager {
+  constructor() {
+    this.pageToTasksMap = new Map();
+    this.chronologicalArr = [];
+    this.pageToTasksMap.set(1, []);
+    this.currentPage = 1;
+    this.lastPage = 1;
+    this.pokemonClient = new PokemonClient();
+    this.pokemonsDataMap = new Map();
+    this.view = new View(this);
+    this.allPokemons = this.fetchAllPokemons();
+  }
+
+  async checkInputString(taskToAdd) {
+    // check if the input separate by commas in purpose
+    // to fetch all pokemons (in case input is id's)
+    if (this.checkForCommas(taskToAdd)) return;
+    // input is numbers, try to fetch pokemon and represent the data
+    if (this.isValidPokemonId(taskToAdd)) {
+      const pokemonName = await this.fetchPokemon(taskToAdd);
+      if (!pokemonName) {
+        this.view.clearInputLine();
+        return;
+      }
+      taskToAdd = "Catch " + pokemonName;
+    }
+    // case the input is name of pokemon then fetch the data
+    if ((await this.allPokemons).includes(taskToAdd)) {
+      await this.fetchPokemon(taskToAdd);
+      taskToAdd = "Catch " + taskToAdd;
+    }
+    // check if the input already exist, if so, return
+    if (this.pageToTasksMap.size) {
+      if (this.checkForDuplicates(taskToAdd)) return;
+    }
+    this.addTask(taskToAdd);
+  }
+
+  checkForCommas(str) {
+    if (str.indexOf(",") > -1) {
+      let nanFlag = false;
+      const tokens = str.split(",");
+      for (let i = 0; i < tokens.length; i++) {
+        if (!this.isValidPokemonId(tokens[i])) nanFlag = true;
+      }
+      if (!nanFlag) {
+        // in case all the tokens are numbers then
+        // check again the string and fetching pokemons
+        // if not, just post the string as is
+        for (let i = 0; i < tokens.length; i++) {
+          this.checkInputString(tokens[i]);
+        }
+        return true;
+      }
+    }
+  }
+
+  // check if string is valid pokemon id: positive integer
+  isValidPokemonId(str) {
+    if (
+      !isNaN(str) &&
+      parseInt(Number(str)) == str &&
+      !isNaN(parseInt(str, 10)) &&
+      str > 0
+    )
+      return true;
+    return false;
+  }
+
+  // function that check if the input allready exist
+  // if so, alert the page the item display in
+  checkForDuplicates(taskToAdd) {
+    for (let i = 1; i < this.pageToTasksMap.size + 1; i++) {
+      const arrTasks = this.pageToTasksMap.get(i);
+      if (arrTasks.includes(taskToAdd)) {
+        alert(
+          "The task: " +
+            taskToAdd +
+            " already in the list, check it out at page: " +
+            i
+        );
+        this.view.clearInputLine();
+        return true;
+      }
+    }
+  }
+
+  // fetch pokemon from API, add it to the pokemons map and post its name with "Catch"
+  async fetchPokemon(pokemonId) {
+    const pokemonData = await this.pokemonClient.getPokemonData(pokemonId);
+    if (!pokemonData) return;
+    const elm = "Catch " + pokemonData.name;
+    this.pokemonsDataMap.set(elm, pokemonData);
+    return pokemonData.name;
+  }
+
+  addTask(taskToAdd) {
+    this.chronologicalArr.push(taskToAdd);
+    // if current page is full (5 items) cant add new item
+    if (this.pageToTasksMap.get(this.currentPage).length === 5) {
+      // if also the last page is full, need to create new page
+      if (this.pageToTasksMap.get(this.lastPage).length === 5) {
+        const tasks = [];
+        tasks.push(taskToAdd);
+        this.lastPage++;
+        this.pageToTasksMap.set(this.lastPage, tasks);
+        this.view.clearInnerHTML("#tasks");
+        this.view.createPagingBtn(this.pageToTasksMap.size);
+      } // last page is not full, adding to the end of the list
+      else {
+        this.pageToTasksMap.set(this.lastPage, [
+          ...this.pageToTasksMap.get(this.lastPage),
+          taskToAdd,
+        ]);
+      }
+    } // current page it not full, adding the item to the end of the list
+    else {
+      this.pageToTasksMap.set(this.currentPage, [
+        ...this.pageToTasksMap.get(this.currentPage),
+        taskToAdd,
+      ]);
+    }
+    // calling the function of displaying the last page (the page of the new item)
+    this.view.displayPage(this.lastPage);
+  }
+
+  deleteKeyFromMap(page) {
+    this.pageToTasksMap.delete(page);
+  }
+
+  getItemsBelongToPage(page) {
+    return this.pageToTasksMap.get(page);
+  }
+
+  setItemsBelongToPage(page, items) {
+    this.pageToTasksMap.set(page, items);
+  }
+
+  getLastPage() {
+    return this.lastPage;
+  }
+
+  setLastPage(page) {
+    this.lastPage = page;
+  }
+
+  getCurrentPage() {
+    return this.currentPage;
+  }
+
+  setCurrentPage(page) {
+    this.currentPage = page;
+  }
+
+  getChronologicalArr() {
+    return this.chronologicalArr;
+  }
+
+  setChronologicalArr(arr) {
+    this.chronologicalArr = arr;
+  }
+
+  getPokemonsMap() {
+    return this.pokemonsDataMap;
+  }
+
+  setPokemonsMap(map) {
+    this.pokemonsDataMap = map;
+  }
+
+  // when had deletion of item, this function update the data in the arrays
+  fixMapAfterUpdatePage() {
+    for (let i = 1; i < this.pageToTasksMap.size; i++) {
+      // if in the current page thier is less then 5 items but also thier is more pages then
+      // the current page so need to move item from the current page + 1 to the current page
+      if (
+        this.pageToTasksMap.get(i).length < 5 &&
+        i < this.pageToTasksMap.size
+      ) {
+        // moving and updating the map
+        const movedNum = this.pageToTasksMap.get(i + 1).shift();
+        this.pageToTasksMap.set(i, [...this.pageToTasksMap.get(i), movedNum]);
+        // in case the last page empty from items so delete the page as well
+        if (this.pageToTasksMap.get(i + 1).length === 0) {
+          this.pageToTasksMap.delete(i + 1);
+          this.view.removeElement(i + 1);
+          this.lastPage--;
+        }
+      }
+    }
+  }
+
+  lexicographicallySort() {
+    const lexicographicallyArr = [];
+    for (let i = 1; i < this.pageToTasksMap.size + 1; i++) {
+      const tmpList = this.pageToTasksMap.get(i);
+      for (let j = 0; j < tmpList.length; j++) {
+        lexicographicallyArr.push(tmpList[j]);
+      }
+    }
+    lexicographicallyArr.sort();
+    this.mySort(lexicographicallyArr.slice());
+  }
+
+  chronologicalSort() {
+    this.mySort(this.chronologicalArr.slice());
+  }
+
+  // function that update the data map after sorting
+  // each page with its new items
+  mySort(array) {
+    let key = 1;
+    const len = array.length;
+    for (let i = 0; i < len; i++) {
+      const tmpList = [];
+      if (array.length > 5) {
+        for (let j = 0; j < 5; j++) {
+          tmpList.push(array.shift());
+        }
+        this.pageToTasksMap.set(key, tmpList);
+        key++;
+      } else {
+        this.pageToTasksMap.set(key, array);
+        break;
+      }
+    }
+    this.view.displayPage(1);
+  }
+
+  deleteAll() {
+    this.pageToTasksMap.clear();
+    this.pageToTasksMap.set(1, []);
+    this.chronologicalArr = [];
+    this.pokemonsDataMap.clear();
+    this.currentPage = 1;
+    for (let i = this.lastPage; i > 1; i--) {
+      this.view.removeElement(i);
+    }
+    this.lastPage = 1;
+    this.view.clearInputLine();
+    this.view.displayPage(1);
+  }
+
+  // fetching all the pokemons and hold it in list
+  async fetchAllPokemons() {
+    const allesPokemons = await this.pokemonClient.getAllPokemons();
+    let tmpArr = [];
+    for (let i = 0; i < allesPokemons.results.length; i++) {
+      tmpArr.push(allesPokemons.results[i].name);
+    }
+    return tmpArr;
+  }
+}
