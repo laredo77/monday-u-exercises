@@ -2,7 +2,7 @@ import { ItemManager } from "./ItemManager.js";
 
 class Main {
   constructor() {
-    this.addBtn = document.getElementById("push");
+    this.addBtn = document.getElementById("addTask");
     this.taskToAdd = document.getElementById("input");
     this.paginationElement = document.getElementById("pagination");
     this.lexiSortBtn = document.getElementById("lexiSort");
@@ -20,32 +20,30 @@ class Main {
         alert("Undefined input");
         this.taskToAdd.value = "";
       } // if the app has maximum of tasks (35) alert and dont add until deletion
-      else if (this.itemManager.getChronologicalArr().length === 35) {
+      else if (this.itemManager.getChronologicalArr().length === 35)
         alert("ToDo list is full (35 Items)");
-      } else {
-        this.itemManager.checkInputString(this.taskToAdd.value);
-      }
+      else this.itemManager.checkInputString(this.taskToAdd.value);
     });
 
     // if the user press keypress the task will add as well
     this.taskToAdd.addEventListener("keypress", function (event) {
       if (event.key === "Enter") {
         event.preventDefault();
-        document.getElementById("push").click();
+        document.getElementById("addTask").click();
       }
     });
 
     this.lexiSortBtn.addEventListener("click", ({ target }) => {
       // if the list is empty, cannot sort and alert
       if (this.itemManager.getItemsBelongToPage(1).length === 0)
-        alert("first add todo's");
+        alert("Cannot sort an empty tasks list");
       else this.itemManager.lexicographicallySort();
     });
 
     this.chronoSortBtn.addEventListener("click", ({ target }) => {
       // if the list is empty, cannot sort and alert
       if (this.itemManager.getItemsBelongToPage(1).length === 0)
-        alert("first add todo's");
+        alert("Cannot sort an empty tasks list");
       else this.itemManager.chronologicalSort();
     });
 
@@ -53,7 +51,7 @@ class Main {
     this.deleteAllBtn.addEventListener("click", ({ target }) => {
       // if the list is empty, cannot delete and alert
       if (this.itemManager.getItemsBelongToPage(1).length === 0)
-        alert("first add todo's");
+        alert("Cannot delete an empty tasks list");
       else this.itemManager.deleteAll();
     });
   }

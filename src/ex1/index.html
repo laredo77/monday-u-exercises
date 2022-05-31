@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Exercise 1</title>
+    <title>Laredo ToDo App</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css">
     <link rel="stylesheet" href="style.css" />
@@ -10,10 +10,10 @@
     <div class="bg"></div>
     <div class="bg bg2"></div>
     <div class="bg bg3"></div>
-    <div class="container">
-        <div id="newtask">
+    <div class="todo-container">
+        <div id="new-task-component">
             <input id="input" type="text" placeholder="Task to be done..">
-            <button id="push">Add</button>
+            <button id="addTask">Add</button>
         </div>
         <div id="sortbuttons">
             <button id="lexiSort">Lexicographically Sort</button>
@@ -28,30 +28,30 @@
             ToDo
         </span>
     </div>
-    <div id="myModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
+    <div id="popup-container" class="popup-container">
+        <div class="popup-content">
+            <span class="popup-close-btn">&times;</span>
             <div class="img-container" style="height: 140px; width: 140px;  margin: auto;
             padding: 10px;">
-                <img id="update_img" src="" alt="" srcset="" style="height: 140px; width: 140px;  margin: auto;
+                <img id="updateImg" src="" alt="" srcset="" style="height: 140px; width: 140px;  margin: auto;
                 padding: 10px;">
             </div>
             <div class="detail-container">
                 <div class="title-container">
-                    <h3 class="name text-center" id="update_name"></h3>
+                    <h3 class="name text-center" id="updateName"></h3>
                     <hr class="seperator">
                 </div>
                 <div class="attributes-container">
                     <div class="col attributes-content">
-                        <p class="cp-text" id="update_type"></p>
+                        <p class="cp-text" id="updateType"></p>
                         <small class="text-muted">Type</small>
                     </div>
                     <div class="col attributes-content">
-                        <p class="cp-text" id="update_weight"></p>
+                        <p class="cp-text" id="updateWeight"></p>
                         <small class="text-muted">Weight</small>
                     </div>
                     <div class="col attributes-content">
-                        <p class="cp-text no-border" id="update_height"></p>
+                        <p class="cp-text no-border" id="updateHeight"></p>
                         <small class="text-muted">Height</small>
                     </div>
                 </div>

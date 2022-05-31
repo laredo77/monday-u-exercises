@@ -8,8 +8,8 @@ export class View {
     this.currentPage = 1;
 
     this.paginationElement.innerHTML = "";
-    const btn = this.paginationButton(this.currentPage);
-    this.paginationElement.appendChild(btn);
+    const pageBtn = this.paginationButton(this.currentPage);
+    this.paginationElement.appendChild(pageBtn);
   }
 
   // displaying the currect page
@@ -21,13 +21,9 @@ export class View {
     // if not, change the items, change the right colors of the paging
     this.currentPage = page;
     this.itemManager.setCurrentPage(this.currentPage);
-    const elements = this.itemManager.getItemsBelongToPage(this.currentPage);
+    const items = this.itemManager.getItemsBelongToPage(this.currentPage);
     this.clearInnerHTML("#tasks");
-    if (elements) {
-      for (let i = 0; i < elements.length; i++) {
-        this.addTaskToHTML(elements[i]);
-      }
-    }
+    if (items) for (const item of items) this.addTaskToHTML(item);
     const currentBtn = document.querySelector(".pagenumbers button.active");
     if (currentBtn) {
       currentBtn.classList.remove("active");
@@ -38,20 +34,20 @@ export class View {
   }
 
   paginationButton(page) {
-    const button = document.createElement("button");
-    button.innerText = page;
-    button.id = page;
+    const newPageButton = document.createElement("button");
+    newPageButton.innerText = page;
+    newPageButton.id = page;
     const self = this; // inside the function, 'this' behave like html element (button)
     if (this.itemManager.getCurrentPage() == page)
-      button.classList.add("active");
+      newPageButton.classList.add("active");
     // when user clicking on the page button, it display the items belong to this page
-    button.addEventListener("click", function () {
+    newPageButton.addEventListener("click", function () {
       self.displayPage(page);
       const currentBtn = document.querySelector(".pagenumbers button.active");
       currentBtn.classList.remove("active");
-      button.classList.add("active");
+      newPageButton.classList.add("active");
     });
-    return button;
+    return newPageButton;
   }
 
   clearInnerHTML(tag) {
@@ -59,8 +55,8 @@ export class View {
   }
 
   createPagingBtn(page) {
-    const btn = this.paginationButton(page);
-    this.paginationElement.appendChild(btn);
+    const pageBtn = this.paginationButton(page);
+    this.paginationElement.appendChild(pageBtn);
   }
 
   addTaskToHTML(task) {
@@ -80,42 +76,35 @@ export class View {
     const self = this;
     // and adding delete functionallty to the tasks element
     let currentTasks = document.querySelectorAll(".delete");
-    for (var i = 0; i < currentTasks.length; i++) {
+    for (const currentTask of currentTasks) {
       // in case clicking to remove then remove the element
-      currentTasks[i].onclick = function () {
+      currentTask.onclick = function () {
         self.updateDataStorage(this.parentNode.innerText, self.currentPage);
-        //remove node
-        this.parentNode.remove();
-        const elements = self.itemManager.getItemsBelongToPage(
-          self.currentPage
-        );
+        this.parentNode.remove(); //remove node
+        const items = self.itemManager.getItemsBelongToPage(self.currentPage);
         // if it is the first page and no more items, just return and ready to add new
-        if (self.currentPage === 1 && elements.length === 0) return;
-        // if no, update the pages
-        self.updatePages();
+        if (self.currentPage === 1 && items.length === 0) return;
+        self.updatePages(); // if no, update the pages
       };
     }
     // adding the onclick functionallty to each task
     currentTasks = document.querySelectorAll("[id=taskname]");
     const tmpPokemonsArr = Array.from(this.itemManager.getPokemonsMap().keys());
-    for (let i = 0; i < currentTasks.length; i++) {
-      currentTasks[i].onclick = function () {
+    for (const currentTask of currentTasks) {
+      currentTask.onclick = function () {
         // if the task is pokemon the display its data
-        if (tmpPokemonsArr.includes(this.parentNode.innerText)) {
+        if (tmpPokemonsArr.includes(this.parentNode.innerText))
           self.popupPokemonData(this.parentNode.innerText);
-        } // otherwise alert the task
-        else {
-          alert(currentTasks[i].parentNode.innerText);
-        }
+        else alert(currentTasks[i].parentNode.innerText); // otherwise alert the task
       };
     }
   }
 
   updateDataStorage(parentNodeInnerText, currentPage) {
     // update map & paging
-    const elements = this.itemManager.getItemsBelongToPage(currentPage);
-    let index = elements.indexOf(parentNodeInnerText);
-    const tmpArr = elements;
+    const items = this.itemManager.getItemsBelongToPage(currentPage);
+    let index = items.indexOf(parentNodeInnerText);
+    const tmpArr = items;
     tmpArr.splice(index, 1);
     this.itemManager.setItemsBelongToPage(currentPage, tmpArr);
     // update chronological arrray
@@ -133,9 +122,9 @@ export class View {
 
   updatePages() {
     this.currentPage = this.itemManager.getCurrentPage();
-    const elements = this.itemManager.getItemsBelongToPage(this.currentPage);
+    const items = this.itemManager.getItemsBelongToPage(this.currentPage);
     // if no more items in the current page, delete it visually
-    if (elements.length === 0) {
+    if (items.length === 0) {
       this.lastPage = this.itemManager.getLastPage();
       this.itemManager.deleteKeyFromMap(this.lastPage);
       document.getElementById(this.lastPage).remove();
@@ -151,37 +140,37 @@ export class View {
   popupPokemonData(task) {
     // when pokemon is clicked, the screen is freeze and popup box with
     // the pokemon data is display
-    const modal = document.getElementById("myModal");
-    const span = document.getElementsByClassName("close")[0];
-    modal.style.display = "block";
+    const popupBox = document.getElementById("popup-container");
+    const span = document.getElementsByClassName("popup-close-btn")[0];
+    popupBox.style.display = "block";
     span.onclick = function () {
-      modal.style.display = "none";
+      popupBox.style.display = "none";
     };
-    let pokemonsMap = this.itemManager.getPokemonsMap();
+    const pokemonsMap = this.itemManager.getPokemonsMap();
     // not all pokemons have 2 types so use try & catch
     try {
-      document.getElementById("update_type").innerHTML = `${
+      document.getElementById("updateType").innerHTML = `${
         pokemonsMap.get(task).types[0].type.name
       } / ${pokemonsMap.get(task).types[1].type.name}`;
     } catch {
       // just one type
-      document.getElementById("update_type").innerHTML = `${
+      document.getElementById("updateType").innerHTML = `${
         pokemonsMap.get(task).types[0].type.name
       }`;
     } finally {
       // adding the rest of the attribures belong to the specific pokemon
       document
-        .getElementById("update_img")
+        .getElementById("updateImg")
         .setAttribute(
           "src",
           pokemonsMap.get(task).sprites.other.dream_world.front_default
         );
-      document.getElementById("update_name").innerHTML =
+      document.getElementById("updateName").innerHTML =
         pokemonsMap.get(task).name;
-      document.getElementById("update_weight").innerHTML = `${
+      document.getElementById("updateWeight").innerHTML = `${
         pokemonsMap.get(task).weight / 10
       }kg`;
-      document.getElementById("update_height").innerHTML = `${
+      document.getElementById("updateHeight").innerHTML = `${
         pokemonsMap.get(task).height / 10
       }m`;
     }

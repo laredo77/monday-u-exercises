@@ -2,15 +2,17 @@
 
 *,
 *:before,
-*:after{
+*:after {
     padding: 0;
     margin: 0;
     box-sizing: border-box;
 }
-body{
+
+body {
     height: 100vh;
 }
-.container{
+
+.todo-container {
   width: 40%;
   min-width: 450px;
   position: absolute;
@@ -23,11 +25,11 @@ body{
 
 }
 
-#newtask{
+#new-task-component {
     position: relative;
     padding: 30px 20px;
 }
-#newtask input {
+#new-task-component input {
     width: 75%;
     height: 45px;
     font-family: 'Poppins',sans-serif;
@@ -39,12 +41,12 @@ body{
     position: relative;
     border-radius: 5px;
 }
-#newtask input:focus{
+#new-task-component input:focus {
     outline: none;
     border-color: #0d75ec;
 }
 
-#newtask button{
+#new-task-component button {
     position: relative;
     float: right;
     width: 20%;
@@ -59,7 +61,8 @@ body{
     cursor: pointer;
     outline: none;
 }
-#tasks{
+
+#tasks {
     background-color: #ffffff;
     padding: 30px 20px;
     margin-top: 10px;
@@ -68,6 +71,7 @@ body{
     position: relative;
     height: 300px;
 }
+
 .task{
     background-color: #c5e1e6;
     height: 50px;
@@ -80,6 +84,7 @@ body{
     border: 1px solid #939697;
     cursor: pointer;
 }
+
 .task span{
     font-family: 'Poppins',sans-serif;
     font-size: 15px;
@@ -135,7 +140,6 @@ body{
   height: 125px;
 }
 
-
 .pagenumbers button {
 	width: 50px;
 	height: 50px;
@@ -176,13 +180,13 @@ body{
     padding-left: 10px;
     font-weight: 900;
   }
+
   #title span {
     background: -webkit-linear-gradient(rgb(129, 166, 240), #272c31);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
   }
-
 
   html {
     height:100%;
@@ -222,23 +226,21 @@ body{
     }
   }
 
-
-  .modal {
+  .popup-container {
     display: none;
     position: fixed;
-    z-index: 1; /* Sit on top */
-    padding-top: 100px; /* Location of the box */
+    z-index: 1;
+    padding-top: 100px;
     left: 0;
     top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgb(0,0,0); /* Fallback color */
-    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
   }
   
-  /* Modal Content */
-  .modal-content {
+  .popup-content {
     background-color: #fefefe;
     margin: auto;
     padding: 20px;
@@ -248,16 +250,15 @@ body{
     border-radius: 10px;
   }
 
-  /* The Close Button */
-  .close {
+  .popup-close-btn {
     color: #aaaaaa;
     float: right;
     font-size: 50px;
     font-weight: bold;
   }
   
-  .close:hover,
-  .close:focus {
+  .popup-close-btn:hover,
+  .popup-close-btn:focus {
     color: #000;
     text-decoration: none;
     cursor: pointer;
@@ -301,7 +302,6 @@ body{
   height: 20px;
   font-size: 24px;
 }
-
 
 .text-muted {
   font-size: 18px;

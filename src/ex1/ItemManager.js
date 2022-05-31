@@ -25,17 +25,17 @@ export class ItemManager {
         this.view.clearInputLine();
         return;
       }
-      taskToAdd = "Catch " + pokemonName;
+      taskToAdd = `Catch ${pokemonName}`;
     }
     // case the input is name of pokemon then fetch the data
     if ((await this.allPokemons).includes(taskToAdd)) {
       await this.fetchPokemon(taskToAdd);
-      taskToAdd = "Catch " + taskToAdd;
+      taskToAdd = `Catch ${taskToAdd}`;
     }
     // check if the input already exist, if so, return
-    if (this.pageToTasksMap.size) {
+    if (this.pageToTasksMap.size)
       if (this.checkForDuplicates(taskToAdd)) return;
-    }
+
     this.addTask(taskToAdd);
   }
 
@@ -43,16 +43,13 @@ export class ItemManager {
     if (str.indexOf(",") > -1) {
       let nanFlag = false;
       const tokens = str.split(",");
-      for (let i = 0; i < tokens.length; i++) {
-        if (!this.isValidPokemonId(tokens[i])) nanFlag = true;
-      }
+      for (const token of tokens)
+        if (!this.isValidPokemonId(token)) nanFlag = true;
       if (!nanFlag) {
         // in case all the tokens are numbers then
         // check again the string and fetching pokemons
         // if not, just post the string as is
-        for (let i = 0; i < tokens.length; i++) {
-          this.checkInputString(tokens[i]);
-        }
+        for (const token of tokens) this.checkInputString(token);
         return true;
       }
     }
@@ -73,14 +70,10 @@ export class ItemManager {
   // function that check if the input allready exist
   // if so, alert the page the item display in
   checkForDuplicates(taskToAdd) {
-    for (let i = 1; i < this.pageToTasksMap.size + 1; i++) {
-      const arrTasks = this.pageToTasksMap.get(i);
-      if (arrTasks.includes(taskToAdd)) {
+    for (const keyValue of this.pageToTasksMap) {
+      if (keyValue[1].includes(taskToAdd)) {
         alert(
-          "The task: " +
-            taskToAdd +
-            " already in the list, check it out at page: " +
-            i
+          `The task: ${taskToAdd} already in the list, check it out at page: ${keyValue[0]}`
         );
         this.view.clearInputLine();
         return true;
@@ -92,8 +85,8 @@ export class ItemManager {
   async fetchPokemon(pokemonId) {
     const pokemonData = await this.pokemonClient.getPokemonData(pokemonId);
     if (!pokemonData) return;
-    const elm = "Catch " + pokemonData.name;
-    this.pokemonsDataMap.set(elm, pokemonData);
+    const catchPokemonTask = "Catch " + pokemonData.name;
+    this.pokemonsDataMap.set(catchPokemonTask, pokemonData);
     return pokemonData.name;
   }
 
@@ -173,6 +166,7 @@ export class ItemManager {
 
   // when had deletion of item, this function update the data in the arrays
   fixMapAfterUpdatePage() {
+    // i represent page (start with 1)
     for (let i = 1; i < this.pageToTasksMap.size; i++) {
       // if in the current page thier is less then 5 items but also thier is more pages then
       // the current page so need to move item from the current page + 1 to the current page
@@ -195,35 +189,29 @@ export class ItemManager {
 
   lexicographicallySort() {
     const lexicographicallyArr = [];
-    for (let i = 1; i < this.pageToTasksMap.size + 1; i++) {
-      const tmpList = this.pageToTasksMap.get(i);
-      for (let j = 0; j < tmpList.length; j++) {
-        lexicographicallyArr.push(tmpList[j]);
-      }
-    }
+    for (const pageWithItems of this.pageToTasksMap)
+      lexicographicallyArr.push(...pageWithItems[1]);
     lexicographicallyArr.sort();
-    this.mySort(lexicographicallyArr.slice());
+    this.updatePagesWithItems(lexicographicallyArr.slice());
   }
 
   chronologicalSort() {
-    this.mySort(this.chronologicalArr.slice());
+    this.updatePagesWithItems(this.chronologicalArr.slice());
   }
 
   // function that update the data map after sorting
   // each page with its new items
-  mySort(array) {
-    let key = 1;
+  updatePagesWithItems(array) {
+    let page = 1;
     const len = array.length;
     for (let i = 0; i < len; i++) {
-      const tmpList = [];
+      const tmpArr = [];
       if (array.length > 5) {
-        for (let j = 0; j < 5; j++) {
-          tmpList.push(array.shift());
-        }
-        this.pageToTasksMap.set(key, tmpList);
-        key++;
+        for (let j = 0; j < 5; j++) tmpArr.push(array.shift());
+        this.pageToTasksMap.set(page, tmpArr);
+        page++;
       } else {
-        this.pageToTasksMap.set(key, array);
+        this.pageToTasksMap.set(page, array);
         break;
       }
     }
@@ -236,9 +224,7 @@ export class ItemManager {
     this.chronologicalArr = [];
     this.pokemonsDataMap.clear();
     this.currentPage = 1;
-    for (let i = this.lastPage; i > 1; i--) {
-      this.view.removeElement(i);
-    }
+    for (let i = this.lastPage; i > 1; i--) this.view.removeElement(i);
     this.lastPage = 1;
     this.view.clearInputLine();
     this.view.displayPage(1);
@@ -246,11 +232,9 @@ export class ItemManager {
 
   // fetching all the pokemons and hold it in list
   async fetchAllPokemons() {
-    const allesPokemons = await this.pokemonClient.getAllPokemons();
-    let tmpArr = [];
-    for (let i = 0; i < allesPokemons.results.length; i++) {
-      tmpArr.push(allesPokemons.results[i].name);
-    }
+    const fetchedPokemons = await this.pokemonClient.getAllPokemons();
+    const tmpArr = [];
+    for (const pokemon of fetchedPokemons.results) tmpArr.push(pokemon.name);
     return tmpArr;
   }
 }
