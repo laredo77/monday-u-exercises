@@ -1,15 +1,23 @@
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
-import { PokemonClient } from "../DOM/PokemonClient.js";
+import { PokemonClient } from "./PokemonClient.js";
 
 import { mondayuMyLogger } from "../mondayu-mylogger/myLogger.js";
-import chalk from 'chalk';
+import chalk from "chalk";
 
 const pokemonClient = new PokemonClient();
 const allPokemons = fetchAllPokemons();
 const pokemonsDataMap = new Map();
 const fs = require("fs").promises;
-const inquirer = require('inquirer');
+const fsWithoutPromises = require("fs");
+
+export function openFileIfNotExist() {
+  if (!fsWithoutPromises.existsSync("./mylogger.txt")) {
+    fsWithoutPromises.writeFile("mylogger.txt", "", function (err) {
+      if (err) throw err;
+    });
+  }
+}
 
 export async function checkInputString(taskToAdd) {
   const allTasks = await getAllTasks();
@@ -82,9 +90,10 @@ async function fetchPokemon(pokemonId) {
 // fetching all the pokemons and hold it in list
 async function fetchAllPokemons() {
   const fetchedPokemons = await pokemonClient.getAllPokemons();
-  const tmpArr = [];
-  for (const pokemon of fetchedPokemons.results) tmpArr.push(pokemon.name);
-  return tmpArr;
+  const pokemonsNameArr = [];
+  for (const pokemon of fetchedPokemons.results)
+    pokemonsNameArr.push(pokemon.name);
+  return pokemonsNameArr;
 }
 
 function addTask(taskToAdd) {
@@ -105,16 +114,23 @@ export async function deleteTask(taskToDelete) {
     isValidPokemonId(taskToDelete) &&
     parseInt(taskToDelete) <= dataArr.length
   ) {
-    dataArr.splice(parseInt(taskToDelete), 1);
+    dataArr.splice(parseInt(taskToDelete) - 1, 1);
   } else {
-    console.log(`the task '${taskToDelete}' is not in the list`);
+    console.log(
+      `the index '${taskToDelete}' is not in the list nor the task '${taskToDelete}'`
+    );
     return;
   }
+
   let dataString = "";
   for (const item of dataArr) dataString += `${item}\n`;
-  while (dataString.indexOf('\n\n') > -1) dataString = dataString.replace('\n\n', '\n');
+  // removing blank lines
+  while (dataString.indexOf("\n\n") > -1)
+    dataString = dataString.replace("\n\n", "\n");
+  // write the updated data to the file
   fs.writeFile("mylogger.txt", dataString, function (err) {
-    if (err) throw err; return;
+    if (err) throw err;
+    return;
   });
   console.log(chalk.red("Todo deleted successfully"));
 }
@@ -130,7 +146,8 @@ export async function getAllTasks() {
 export function deleteAll() {
   // delete all task from logger
   fs.writeFile("mylogger.txt", "", function (err) {
-    if (err) throw err; return;
+    if (err) throw err;
+    return;
   });
   console.log(chalk.red("All todo's deleted successfully"));
 }

@@ -1,6 +1,0 @@
-Catch ivysaur
-Catch charmeleon
-Catch venusaur
-Catch bulbasaur
-Catch charmander
-Catch charizard

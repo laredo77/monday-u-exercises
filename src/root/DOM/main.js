@@ -10,6 +10,7 @@ class Main {
     this.deleteAllBtn = document.getElementById("deleteAll");
     this.currentPage = 1;
     this.itemManager = new ItemManager();
+    this.maxTasks = 35;
   }
 
   // add event listeners to the buttons of the app
@@ -20,7 +21,7 @@ class Main {
         alert("Undefined input");
         this.taskToAdd.value = "";
       } // if the app has maximum of tasks (35) alert and dont add until deletion
-      else if (this.itemManager.getChronologicalArr().length === 35)
+      else if (this.itemManager.getChronologicalArr().length === this.maxTasks)
         alert("ToDo list is full (35 Items)");
       else this.itemManager.checkInputString(this.taskToAdd.value);
     });

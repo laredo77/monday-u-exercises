@@ -21,12 +21,15 @@ export class View {
     // if not, change the items, change the right colors of the paging
     this.currentPage = page;
     this.itemManager.setCurrentPage(this.currentPage);
-    const items = this.itemManager.getItemsBelongToPage(this.currentPage);
+    const tasksInCurrentPage = this.itemManager.getItemsBelongToPage(
+      this.currentPage
+    );
     this.clearInnerHTML("#tasks");
-    if (items) for (const item of items) this.addTaskToHTML(item);
-    const currentBtn = document.querySelector(".pagenumbers button.active");
-    if (currentBtn) {
-      currentBtn.classList.remove("active");
+    if (tasksInCurrentPage)
+      for (const task of tasksInCurrentPage) this.addTaskToHTML(task);
+    const currentPageBtn = document.querySelector(".pagenumbers button.active");
+    if (currentPageBtn) {
+      currentPageBtn.classList.remove("active");
       const newPageBtn = document.getElementById(this.currentPage);
       newPageBtn.classList.add("active");
     }
@@ -43,8 +46,10 @@ export class View {
     // when user clicking on the page button, it display the items belong to this page
     newPageButton.addEventListener("click", function () {
       self.displayPage(page);
-      const currentBtn = document.querySelector(".pagenumbers button.active");
-      currentBtn.classList.remove("active");
+      const currentPageBtn = document.querySelector(
+        ".pagenumbers button.active"
+      );
+      currentPageBtn.classList.remove("active");
       newPageButton.classList.add("active");
     });
     return newPageButton;
@@ -73,7 +78,7 @@ export class View {
               </button>
           </div>
         `;
-    const self = this;
+    const self = this; // inside the function, 'this' behave like html element (button)
     // and adding delete functionallty to the tasks element
     let currentTasks = document.querySelectorAll(".delete");
     for (const currentTask of currentTasks) {
@@ -81,9 +86,11 @@ export class View {
       currentTask.onclick = function () {
         self.updateDataStorage(this.parentNode.innerText, self.currentPage);
         this.parentNode.remove(); //remove node
-        const items = self.itemManager.getItemsBelongToPage(self.currentPage);
+        const tasksInCurrentPage = self.itemManager.getItemsBelongToPage(
+          self.currentPage
+        );
         // if it is the first page and no more items, just return and ready to add new
-        if (self.currentPage === 1 && items.length === 0) return;
+        if (self.currentPage === 1 && tasksInCurrentPage.length === 0) return;
         self.updatePages(); // if no, update the pages
       };
     }
@@ -95,16 +102,17 @@ export class View {
         // if the task is pokemon the display its data
         if (tmpPokemonsArr.includes(this.parentNode.innerText))
           self.popupPokemonData(this.parentNode.innerText);
-        else alert(currentTasks[i].parentNode.innerText); // otherwise alert the task
+        else alert(currentTask.parentNode.innerText); // otherwise alert the task
       };
     }
   }
 
   updateDataStorage(parentNodeInnerText, currentPage) {
     // update map & paging
-    const items = this.itemManager.getItemsBelongToPage(currentPage);
-    let index = items.indexOf(parentNodeInnerText);
-    const tmpArr = items;
+    const tasksInCurrentPage =
+      this.itemManager.getItemsBelongToPage(currentPage);
+    let index = tasksInCurrentPage.indexOf(parentNodeInnerText);
+    const tmpArr = tasksInCurrentPage;
     tmpArr.splice(index, 1);
     this.itemManager.setItemsBelongToPage(currentPage, tmpArr);
     // update chronological arrray
@@ -141,11 +149,18 @@ export class View {
     // when pokemon is clicked, the screen is freeze and popup box with
     // the pokemon data is display
     const popupBox = document.getElementById("popup-container");
-    const span = document.getElementsByClassName("popup-close-btn")[0];
+    const closeBtn = document.getElementsByClassName("popup-close-btn")[0];
     popupBox.style.display = "block";
-    span.onclick = function () {
+    // clicking on close button or outside of the popup box will close the box
+    closeBtn.onclick = function () {
       popupBox.style.display = "none";
     };
+    window.onclick = function (event) {
+      if (event.target == popupBox) {
+        popupBox.style.display = "none";
+      }
+    };
+
     const pokemonsMap = this.itemManager.getPokemonsMap();
     // not all pokemons have 2 types so use try & catch
     try {

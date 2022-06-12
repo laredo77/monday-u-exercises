@@ -12,6 +12,7 @@ export class ItemManager {
     this.pokemonsDataMap = new Map();
     this.view = new View(this);
     this.allPokemons = this.fetchAllPokemons();
+    this.maxTasksInPage = 5;
   }
 
   async checkInputString(taskToAdd) {
@@ -41,7 +42,7 @@ export class ItemManager {
 
   checkForCommas(str) {
     if (str.indexOf(",") > -1) {
-      let nanFlag = false;
+      let nanFlag = false; // in case str is not a number
       const tokens = str.split(",");
       for (const token of tokens)
         if (!this.isValidPokemonId(token)) nanFlag = true;
@@ -70,10 +71,10 @@ export class ItemManager {
   // function that check if the input allready exist
   // if so, alert the page the item display in
   checkForDuplicates(taskToAdd) {
-    for (const keyValue of this.pageToTasksMap) {
-      if (keyValue[1].includes(taskToAdd)) {
+    for (const pageWithTasks of this.pageToTasksMap) {
+      if (pageWithTasks[1].includes(taskToAdd)) {
         alert(
-          `The task: ${taskToAdd} already in the list, check it out at page: ${keyValue[0]}`
+          `The task: ${taskToAdd} already in the list, check it out at page: ${pageWithTasks[0]}`
         );
         this.view.clearInputLine();
         return true;
@@ -93,9 +94,13 @@ export class ItemManager {
   addTask(taskToAdd) {
     this.chronologicalArr.push(taskToAdd);
     // if current page is full (5 items) cant add new item
-    if (this.pageToTasksMap.get(this.currentPage).length === 5) {
+    if (
+      this.pageToTasksMap.get(this.currentPage).length === this.maxTasksInPage
+    ) {
       // if also the last page is full, need to create new page
-      if (this.pageToTasksMap.get(this.lastPage).length === 5) {
+      if (
+        this.pageToTasksMap.get(this.lastPage).length === this.maxTasksInPage
+      ) {
         const tasks = [];
         tasks.push(taskToAdd);
         this.lastPage++;
@@ -166,12 +171,12 @@ export class ItemManager {
 
   // when had deletion of item, this function update the data in the arrays
   fixMapAfterUpdatePage() {
-    // i represent page (start with 1)
+    // 'i' represent page (start with 1)
     for (let i = 1; i < this.pageToTasksMap.size; i++) {
       // if in the current page thier is less then 5 items but also thier is more pages then
       // the current page so need to move item from the current page + 1 to the current page
       if (
-        this.pageToTasksMap.get(i).length < 5 &&
+        this.pageToTasksMap.get(i).length < this.maxTasksInPage &&
         i < this.pageToTasksMap.size
       ) {
         // moving and updating the map
@@ -201,17 +206,18 @@ export class ItemManager {
 
   // function that update the data map after sorting
   // each page with its new items
-  updatePagesWithItems(array) {
+  updatePagesWithItems(arrayOfTasks) {
     let page = 1;
-    const len = array.length;
+    const len = arrayOfTasks.length;
     for (let i = 0; i < len; i++) {
       const tmpArr = [];
-      if (array.length > 5) {
-        for (let j = 0; j < 5; j++) tmpArr.push(array.shift());
+      if (arrayOfTasks.length > this.maxTasksInPage) {
+        for (let j = 0; j < this.maxTasksInPage; j++)
+          tmpArr.push(arrayOfTasks.shift());
         this.pageToTasksMap.set(page, tmpArr);
         page++;
       } else {
-        this.pageToTasksMap.set(page, array);
+        this.pageToTasksMap.set(page, arrayOfTasks);
         break;
       }
     }
@@ -233,8 +239,9 @@ export class ItemManager {
   // fetching all the pokemons and hold it in list
   async fetchAllPokemons() {
     const fetchedPokemons = await this.pokemonClient.getAllPokemons();
-    const tmpArr = [];
-    for (const pokemon of fetchedPokemons.results) tmpArr.push(pokemon.name);
-    return tmpArr;
+    const pokemonsNameArr = [];
+    for (const pokemon of fetchedPokemons.results)
+      pokemonsNameArr.push(pokemon.name);
+    return pokemonsNameArr;
   }
 }

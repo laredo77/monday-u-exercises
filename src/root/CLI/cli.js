@@ -4,6 +4,7 @@ import {
   deleteTask,
   getAllTasks,
   deleteAll,
+  openFileIfNotExist,
 } from "./commands.js";
 
 const todoApp = new Command();
@@ -15,9 +16,10 @@ todoApp
 
 todoApp
   .command("add")
-  .description("Add new task")
+  .description("add new task")
   .argument("<string>", "task")
   .action((taskToAdd) => {
+    openFileIfNotExist();
     checkInputString(taskToAdd);
   });
 
@@ -40,8 +42,10 @@ todoApp
   .command("get")
   .description("get all tasks")
   .action(() => {
-    getAllTasks().then(function (result) {
-      console.log(result);
+    getAllTasks().then(function (results) {
+      results = results.filter(n => n)
+      if (results.length == 0) console.log("The logger is empty");
+      else for (const result of results) console.log(result);
     });
   });
 
