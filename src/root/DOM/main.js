@@ -48,7 +48,7 @@ class Main {
       else this.itemManager.chronologicalSort();
     });
 
-    // deleting all todo's
+    // deleting all todo's 4
     this.deleteAllBtn.addEventListener("click", ({ target }) => {
       // if the list is empty, cannot delete and alert
       if (this.itemManager.getItemsBelongToPage(1).length === 0)
