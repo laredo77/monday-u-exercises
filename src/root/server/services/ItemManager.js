@@ -1,5 +1,5 @@
-import { PokemonClient } from "./PokemonClient.js";
-import { View } from "./View.js";
+import { PokemonClient } from "../clients/PokemonClient.js";
+import { View } from "../../dist/View.js";
 
 export class ItemManager {
   constructor() {

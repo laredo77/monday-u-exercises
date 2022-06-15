@@ -1,7 +1,6 @@
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
-import { PokemonClient } from "./PokemonClient.js";
-
+import { PokemonClient } from "../../clients/PokemonClient.js";
 import { mondayuMyLogger } from "../mondayu-mylogger/myLogger.js";
 import chalk from "chalk";
 
