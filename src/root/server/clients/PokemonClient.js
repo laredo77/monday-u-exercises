@@ -1,4 +1,5 @@
-export class PokemonClient {
+module.exports = class PokemonClient {
+
   constructor() {
     this.url = "https://pokeapi.co/api/v2/pokemon/";
   }

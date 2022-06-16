@@ -1,15 +1,16 @@
-// this class manage the view of the page
-export class View {
+const PokemonClient = require("../../server/clients/PokemonClient");
+
+module.exports = class utilUI {
   constructor(itemManager) {
-    this.itemManager = itemManager;
     this.taskToAdd = document.getElementById("input");
     this.paginationElement = document.getElementById("pagination");
-    this.lastPage = 1;
-    this.currentPage = 1;
-
     this.paginationElement.innerHTML = "";
-    const pageBtn = this.paginationButton(this.currentPage);
-    this.paginationElement.appendChild(pageBtn);
+    this.currentPage = 1;
+    this.createPagingBtn(this.currentPage);
+    this.itemManager = itemManager;
+    this.pokemonClient = new PokemonClient();
+    this.allPokemons = this.fetchAllPokemons();
+    // this.pokemonsDataMap = new Map();
   }
 
   // displaying the currect page
@@ -69,22 +70,22 @@ export class View {
     this.taskToAdd.value = ""; // clean input line
     // adding the task to the html
     document.querySelector("#tasks").innerHTML += `
-          <div class="task">
-              <span id="taskname" style="width:600px;">
-                ${task}
-              </span>
-              <button class="delete">
-                <i class="far fa-trash-alt"></i>
-              </button>
-          </div>
-        `;
+            <div class="task">
+                <span id="taskname" style="width:600px;">
+                  ${task}
+                </span>
+                <button class="delete">
+                  <i class="far fa-trash-alt"></i>
+                </button>
+            </div>
+          `;
     const self = this; // inside the function, 'this' behave like html element (button)
     // and adding delete functionallty to the tasks element
     let currentTasks = document.querySelectorAll(".delete");
     for (const currentTask of currentTasks) {
       // in case clicking to remove then remove the element
       currentTask.onclick = function () {
-        self.updateDataStorage(this.parentNode.innerText, self.currentPage);
+        self.updateDataStorage(this.parentNode.innerText, x);
         this.parentNode.remove(); //remove node
         const tasksInCurrentPage = self.itemManager.getItemsBelongToPage(
           self.currentPage
@@ -133,12 +134,12 @@ export class View {
     const items = this.itemManager.getItemsBelongToPage(this.currentPage);
     // if no more items in the current page, delete it visually
     if (items.length === 0) {
-      this.lastPage = this.itemManager.getLastPage();
-      this.itemManager.deleteKeyFromMap(this.lastPage);
-      document.getElementById(this.lastPage).remove();
-      this.lastPage--;
-      this.itemManager.setLastPage(this.lastPage);
-      this.displayPage(this.lastPage);
+      let lastPage = this.itemManager.getLastPage();
+      this.itemManager.deleteKeyFromMap(lastPage);
+      document.getElementById(lastPage).remove();
+      lastPage--;
+      this.itemManager.setLastPage(lastPage);
+      this.displayPage(lastPage);
     }
     this.itemManager.fixMapAfterUpdatePage();
     this.displayPage(this.currentPage);
@@ -198,4 +199,125 @@ export class View {
   removeElement(elmId) {
     document.getElementById(elmId).remove();
   }
-}
+
+  async checkInputString(taskToAdd) {
+    // check if the input separate by commas in purpose
+    // to fetch all pokemons (in case input is id's)
+    if (this.checkForCommas(taskToAdd)) return;
+    // input is numbers, try to fetch pokemon and represent the data
+    if (this.isValidPokemonId(taskToAdd)) {
+      const pokemonName = await this.fetchPokemon(taskToAdd);
+      if (!pokemonName) {
+        this.clearInputLine();
+        return;
+      }
+      taskToAdd = `Catch ${pokemonName}`;
+    }
+    // case the input is name of pokemon then fetch the data
+    if ((await this.allPokemons).includes(taskToAdd)) {
+      await this.fetchPokemon(taskToAdd);
+      taskToAdd = `Catch ${taskToAdd}`;
+    }
+    // check if the input already exist, if so, return
+    if (this.itemManager.pageToTasksMap.size)
+      if (this.checkForDuplicates(taskToAdd)) return;
+
+    this.addTask(taskToAdd);
+  }
+
+  checkForCommas(str) {
+    if (str.indexOf(",") > -1) {
+      let nanFlag = false; // in case str is not a number
+      const tokens = str.split(",");
+      for (const token of tokens)
+        if (!this.isValidPokemonId(token)) nanFlag = true;
+      if (!nanFlag) {
+        // in case all the tokens are numbers then
+        // check again the string and fetching pokemons
+        // if not, just post the string as is
+        for (const token of tokens) this.checkInputString(token);
+        return true;
+      }
+    }
+  }
+
+  // check if string is valid pokemon id: positive integer
+  isValidPokemonId(str) {
+    if (
+      !isNaN(str) &&
+      parseInt(Number(str)) == str &&
+      !isNaN(parseInt(str, 10)) &&
+      str > 0
+    )
+      return true;
+    return false;
+  }
+
+  // function that check if the input allready exist
+  // if so, alert the page the item display in
+  checkForDuplicates(taskToAdd) {
+    for (const pageWithTasks of this.itemManager.pageToTasksMap) {
+      if (pageWithTasks[1].includes(taskToAdd)) {
+        alert(
+          `The task: ${taskToAdd} already in the list, check it out at page: ${pageWithTasks[0]}`
+        );
+        this.clearInputLine();
+        return true;
+      }
+    }
+  }
+
+  // fetch pokemon from API, add it to the pokemons map and post its name with "Catch"
+  async fetchPokemon(pokemonId) {
+    const pokemonData = await this.pokemonClient.getPokemonData(pokemonId);
+    if (!pokemonData) return;
+    const catchPokemonTask = "Catch " + pokemonData.name;
+    this.pokemonsDataMap.set(catchPokemonTask, pokemonData);
+    return pokemonData.name;
+  }
+
+  addTask(taskToAdd) {
+    this.itemManager.chronologicalArr.push(taskToAdd);
+    // if current page is full (5 items) cant add new item
+    if (
+      this.itemManager.pageToTasksMap.get(this.itemManager.currentPage)
+        .length === this.itemManager.maxTasksInPage
+    ) {
+      // if also the last page is full, need to create new page
+      if (
+        this.itemManager.pageToTasksMap.get(this.itemManager.lastPage)
+          .length === this.itemManager.maxTasksInPage
+      ) {
+        const tasks = [];
+        tasks.push(taskToAdd);
+        this.itemManager.lastPage++;
+        this.itemManager.pageToTasksMap.set(this.itemManager.lastPage, tasks);
+        this.clearInnerHTML("#tasks");
+        this.createPagingBtn(this.itemManager.pageToTasksMap.size);
+      } // last page is not full, adding to the end of the list
+      else {
+        this.itemManager.pageToTasksMap.set(this.itemManager.lastPage, [
+          ...this.itemManager.pageToTasksMap.get(this.itemManager.lastPage),
+          taskToAdd,
+        ]);
+      }
+    } // current page it not full, adding the item to the end of the list
+    else {
+      this.itemManager.pageToTasksMap.set(this.itemManager.currentPage, [
+        ...this.itemManager.pageToTasksMap.get(this.itemManager.currentPage),
+        taskToAdd,
+      ]);
+    }
+    // calling the function of displaying the last page (the page of the new item)
+    this.displayPage(this.itemManager.lastPage);
+  }
+
+  // fetching all the pokemons and hold it in list
+  async fetchAllPokemons() {
+    const fetchedPokemons = await this.pokemonClient.getAllPokemons();
+    const pokemonsNameArr = [];
+    for (const pokemon of fetchedPokemons.results)
+      pokemonsNameArr.push(pokemon.name);
+    return pokemonsNameArr;
+  }
+};

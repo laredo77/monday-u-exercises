@@ -1,4 +1,8 @@
-import { ItemManager } from "../server/services/ItemManager.js";
+const ItemManager = require('../server/services/ItemManager')
+const ItemClients = require('./clients/itemClients')
+
+// import { ItemManager } from '../server/services/ItemManager.js';
+// import { ItemClients } from './clients/itemClients.js';
 
 class Main {
   constructor() {
@@ -10,6 +14,7 @@ class Main {
     this.deleteAllBtn = document.getElementById("deleteAll");
     this.currentPage = 1;
     this.itemManager = new ItemManager();
+    this.itemClient = new ItemClients(this.itemManager);
     this.maxTasks = 35;
   }
 
@@ -23,10 +28,10 @@ class Main {
       } // if the app has maximum of tasks (35) alert and dont add until deletion
       else if (this.itemManager.getChronologicalArr().length === this.maxTasks)
         alert("ToDo list is full (35 Items)");
-      else this.itemManager.checkInputString(this.taskToAdd.value);
+      else this.itemClient.addNewTask(this.taskToAdd.value);
     });
 
-    // if the user press keypress the task will add as well
+    // if the user press "Enter" the task will add as well
     this.taskToAdd.addEventListener("keypress", function (event) {
       if (event.key === "Enter") {
         event.preventDefault();

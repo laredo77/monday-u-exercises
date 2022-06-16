@@ -1,9 +1,0 @@
-Catch ivysaur
-Catch bulbasaur
-Catch charmander
-Catch venusaur
-Catch charmeleon
-Catch charizard
-a,b,c,d,e,f
-Catch clefairy
-Catch nidoking

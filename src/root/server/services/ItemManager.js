@@ -1,7 +1,9 @@
-import { PokemonClient } from "../clients/PokemonClient.js";
-import { View } from "../../dist/View.js";
+const PokemonClient = require("../clients/PokemonClient");
+// const utilUI = require("../../dist/clients/utilUI");
+const tasksFile = "tasks.json";
+const fs = require("fs");
 
-export class ItemManager {
+module.exports = class ItemManager {
   constructor() {
     this.pageToTasksMap = new Map();
     this.chronologicalArr = [];
@@ -10,119 +12,17 @@ export class ItemManager {
     this.lastPage = 1;
     this.pokemonClient = new PokemonClient();
     this.pokemonsDataMap = new Map();
-    this.view = new View(this);
-    this.allPokemons = this.fetchAllPokemons();
     this.maxTasksInPage = 5;
   }
 
-  async checkInputString(taskToAdd) {
-    // check if the input separate by commas in purpose
-    // to fetch all pokemons (in case input is id's)
-    if (this.checkForCommas(taskToAdd)) return;
-    // input is numbers, try to fetch pokemon and represent the data
-    if (this.isValidPokemonId(taskToAdd)) {
-      const pokemonName = await this.fetchPokemon(taskToAdd);
-      if (!pokemonName) {
-        this.view.clearInputLine();
-        return;
-      }
-      taskToAdd = `Catch ${pokemonName}`;
-    }
-    // case the input is name of pokemon then fetch the data
-    if ((await this.allPokemons).includes(taskToAdd)) {
-      await this.fetchPokemon(taskToAdd);
-      taskToAdd = `Catch ${taskToAdd}`;
-    }
-    // check if the input already exist, if so, return
-    if (this.pageToTasksMap.size)
-      if (this.checkForDuplicates(taskToAdd)) return;
-
-    this.addTask(taskToAdd);
-  }
-
-  checkForCommas(str) {
-    if (str.indexOf(",") > -1) {
-      let nanFlag = false; // in case str is not a number
-      const tokens = str.split(",");
-      for (const token of tokens)
-        if (!this.isValidPokemonId(token)) nanFlag = true;
-      if (!nanFlag) {
-        // in case all the tokens are numbers then
-        // check again the string and fetching pokemons
-        // if not, just post the string as is
-        for (const token of tokens) this.checkInputString(token);
-        return true;
-      }
-    }
-  }
-
-  // check if string is valid pokemon id: positive integer
-  isValidPokemonId(str) {
-    if (
-      !isNaN(str) &&
-      parseInt(Number(str)) == str &&
-      !isNaN(parseInt(str, 10)) &&
-      str > 0
-    )
-      return true;
-    return false;
-  }
-
-  // function that check if the input allready exist
-  // if so, alert the page the item display in
-  checkForDuplicates(taskToAdd) {
-    for (const pageWithTasks of this.pageToTasksMap) {
-      if (pageWithTasks[1].includes(taskToAdd)) {
-        alert(
-          `The task: ${taskToAdd} already in the list, check it out at page: ${pageWithTasks[0]}`
-        );
-        this.view.clearInputLine();
-        return true;
-      }
-    }
-  }
-
-  // fetch pokemon from API, add it to the pokemons map and post its name with "Catch"
-  async fetchPokemon(pokemonId) {
-    const pokemonData = await this.pokemonClient.getPokemonData(pokemonId);
-    if (!pokemonData) return;
-    const catchPokemonTask = "Catch " + pokemonData.name;
-    this.pokemonsDataMap.set(catchPokemonTask, pokemonData);
-    return pokemonData.name;
-  }
-
-  addTask(taskToAdd) {
-    this.chronologicalArr.push(taskToAdd);
-    // if current page is full (5 items) cant add new item
-    if (
-      this.pageToTasksMap.get(this.currentPage).length === this.maxTasksInPage
-    ) {
-      // if also the last page is full, need to create new page
-      if (
-        this.pageToTasksMap.get(this.lastPage).length === this.maxTasksInPage
-      ) {
-        const tasks = [];
-        tasks.push(taskToAdd);
-        this.lastPage++;
-        this.pageToTasksMap.set(this.lastPage, tasks);
-        this.view.clearInnerHTML("#tasks");
-        this.view.createPagingBtn(this.pageToTasksMap.size);
-      } // last page is not full, adding to the end of the list
-      else {
-        this.pageToTasksMap.set(this.lastPage, [
-          ...this.pageToTasksMap.get(this.lastPage),
-          taskToAdd,
-        ]);
-      }
-    } // current page it not full, adding the item to the end of the list
-    else {
-      this.pageToTasksMap.set(this.currentPage, [
-        ...this.pageToTasksMap.get(this.currentPage),
-        taskToAdd,
-      ]);
-    }
-    // calling the function of displaying the last page (the page of the new item)
-    this.view.displayPage(this.lastPage);
+  async addTask(task) {
+    const response = [];
+    let data = await this.readTasksFile();
+    if (!data) data = [];
+    response.push(task);
+    data = [...data, ...response];
+    await this.writeTasksFile(data);
+    return response;
   }
 
   deleteKeyFromMap(page) {
@@ -185,7 +85,7 @@ export class ItemManager {
         // in case the last page empty from items so delete the page as well
         if (this.pageToTasksMap.get(i + 1).length === 0) {
           this.pageToTasksMap.delete(i + 1);
-          this.view.removeElement(i + 1);
+          // this.utilUI.removeElement(i + 1);
           this.lastPage--;
         }
       }
@@ -221,7 +121,7 @@ export class ItemManager {
         break;
       }
     }
-    this.view.displayPage(1);
+    // this.utilUI.displayPage(1);
   }
 
   deleteAll() {
@@ -230,18 +130,26 @@ export class ItemManager {
     this.chronologicalArr = [];
     this.pokemonsDataMap.clear();
     this.currentPage = 1;
-    for (let i = this.lastPage; i > 1; i--) this.view.removeElement(i);
+    // for (let i = this.lastPage; i > 1; i--) this.utilUI.removeElement(i);
     this.lastPage = 1;
-    this.view.clearInputLine();
-    this.view.displayPage(1);
+    // this.utilUI.clearInputLine();
+    // this.utilUI.displayPage(1);
   }
 
-  // fetching all the pokemons and hold it in list
-  async fetchAllPokemons() {
-    const fetchedPokemons = await this.pokemonClient.getAllPokemons();
-    const pokemonsNameArr = [];
-    for (const pokemon of fetchedPokemons.results)
-      pokemonsNameArr.push(pokemon.name);
-    return pokemonsNameArr;
+  async readTasksFile() {
+    try {
+      const data = await fs.readFile(tasksFile);
+      return await JSON.parse(data.toString());
+    } catch (error) {
+      console.error(`Got an error trying to read the file: ${error.message}`);
+    }
   }
-}
+
+  async writeToTasksFile(content) {
+    try {
+      await fs.writeFile(tasksFile, JSON.stringify(content));
+    } catch (error) {
+      console.error(`Failed to write to file ${error.message}`);
+    }
+  }
+};
