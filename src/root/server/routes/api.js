@@ -6,6 +6,8 @@ const {
     addNewTask,
     deleteTask,
     deleteAllTasks,
+    getPokemonsMap,
+    initClient,
     // getTask,
     // deleteTask,
     // deleteAllTasks,
@@ -19,10 +21,12 @@ const todoRouter = express.Router();
 //     res.status(200).json("Welcome");
 // })
 
+todoRouter.get('/', initClient);
 todoRouter.get('/all', getAllTasks);
 todoRouter.post('/', addNewTask);
 todoRouter.delete('/', deleteTask);
 todoRouter.delete('/all', deleteAllTasks);
+todoRouter.get('/pokemons', getPokemonsMap);
 
 module.exports = todoRouter;
 

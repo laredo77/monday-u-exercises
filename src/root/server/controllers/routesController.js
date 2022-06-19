@@ -1,14 +1,29 @@
 const ItemManager = require('../../server/services/ItemManager')
 const itemManager = new ItemManager();
 
-async function getAllTasks(req, res) {
 
+async function initClient(req, res) {
+    const response = await itemManager.initClient(req.body);
+    res.status(200).json(response);
+}
+
+async function getAllTasks(req, res) {
     // let data = await jediService.getAll();
     // if (!data) data = [];
-    res.status(200).json("hello from routesController");
-    // const data = await item.getAll();
-    // if (!data) data = []
-    // res.status(200).json(data);
+    //res.status(200).json("hello from routesController");
+    let data = await itemManager.getAll();
+    if (!data) data = []
+    res.status(200).json(data);
+}
+
+
+async function getPokemonsMap(req, res) {
+    // let data = await jediService.getAll();
+    // if (!data) data = [];
+    //res.status(200).json("hello from routesController");
+    let data = await itemManager.sendPokemonsMapToClient();
+    if (!data) data = []
+    res.status(200).json(data);
 }
 
 async function addNewTask(req, res) {
@@ -20,13 +35,12 @@ async function addNewTask(req, res) {
     // console.log(response);
     // res.status(200).json(response);
 
-    const response = await itemManager.addTask(req.body);
+    const response = await itemManager.checkInputString(req.body);
     res.status(200).json(response);
-
 }
 
 async function deleteTask(req, res) {
-
+    await itemManager.deleteTask(req.body);
 }
 
 async function deleteAllTasks(req, res) {
@@ -37,7 +51,9 @@ module.exports = {
     getAllTasks,
     addNewTask,
     deleteTask,
-    deleteAllTasks
+    deleteAllTasks,
+    getPokemonsMap,
+    initClient
 };
 
 // const jediService = require("../service/JediService");
