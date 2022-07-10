@@ -1,22 +1,20 @@
-const axios = require('axios');
+const axios = require("axios");
 
 module.exports = class PokemonClient {
-
   constructor() {
     this.url = "https://pokeapi.co/api/v2/pokemon/";
   }
 
   async getPokemonData(pokemonId) {
-    const tmpUrl = this.url + pokemonId;
-    const response = await axios.get(tmpUrl);
-
-    if (response.status == 404 || response.statusText == "Not Found") {
-      alert(`The ID: ${pokemonId} is invalid.`);
-      return;
+    try {
+      const response = await axios.get(
+        `https://pokeapi.co/api/v2/pokemon/${pokemonId}`
+      );
+      const pokemon = await response.data;
+      return pokemon;
+    } catch (err) {
+      console.log(err);
     }
-
-    const pokemon = await response.data;
-    return pokemon;
   }
 
   async getAllPokemons() {
@@ -28,7 +26,7 @@ module.exports = class PokemonClient {
       return;
     }
 
-    const pokemons = await response.data
+    const pokemons = await response.data;
     return pokemons;
   }
-}
+};

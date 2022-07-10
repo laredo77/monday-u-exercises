@@ -1,50 +1,62 @@
 const PokemonClient = require("../clients/PokemonClient");
-
-const tasksFile = "tasks.json";
-
-const fs = require("fs").promises;
-const fsWithOutPromises = require("fs");
+const tasksFile = "tasks.txt";
+const fs = require("fs");
+const readline = require("readline");
+const { kMaxLength } = require("buffer");
 
 module.exports = class ItemManager {
   constructor() {
     this.pokemonClient = new PokemonClient();
     this.fetchAllPokemons();
+    this.tasks = [];
+    this.writeStream = fs.createWriteStream(tasksFile, { flags: "a" });
+    this.readStream = fs.createReadStream(tasksFile);
   }
 
   async initClient() {
-    //     var webProjects = JSON.parse(fs.readFileSync('webProjects.json'));
-    // let json = JSON.parse(file);
-    // console.log(json);
-    // console.log(Object.entries(json));
-    // console.log(Object.entries(json).length);
-    // console.log(tasksFile)
-    // if (Object.entries(tasksFile).length === 0) this.writeToTasksFile(tasksFile, []);
+    // get all tasks from the db
+    this.tasks = await this.readTasksFile();
+  }
+
+  async addNewTaskScheme(task) {
+    // input is numbers, try to fetch pokemon and represent the data
+    if (this.isValidPokemonId(task)) {
+      const pokemonData = await this.fetchPokemon(task);
+      if (!pokemonData) return null;
+      task = `Catch ${pokemonData.name}`;
+    }
+    // case the input is name of pokemon then fetch the data
+    if (this.allPokemons.includes(task)) {
+      try {
+        const tryToFetchPokemon = await this.fetchPokemon(task);
+        if (tryToFetchPokemon) task = `Catch ${task}`;
+      } catch {}
+    }
+    // check if the input already exist, if so, return
+    if (await this.checkForDuplicates(task)) {
+      console.log(`The task: ${task} already in the list`);
+      return null;
+    }
+    await this.addTask(task);
+    return task;
   }
 
   async checkInputString(taskToAdd) {
     // check if the input separate by commas in purpose
     // to fetch all pokemons (in case input is id's)
-    if (this.checkForCommas(taskToAdd.name)) return;
-    // input is numbers, try to fetch pokemon and represent the data
-    if (this.isValidPokemonId(taskToAdd.name)) {
-      const pokemonData = await this.fetchPokemon(taskToAdd.name);
-      if (!pokemonData) return;
-      taskToAdd.name = `Catch ${pokemonData.name}`;
+    const res = this.checkForCommas(taskToAdd.name);
+    if (!res) return;
+    const tasksName = [];
+    if (Array.isArray(res)) {
+      for (const task of res) {
+        const retVal = await this.addNewTaskScheme(task);
+        tasksName.push(retVal);
+      }
+    } else {
+      const retVal = await this.addNewTaskScheme(res);
+      tasksName.push(retVal);
     }
-    // case the input is name of pokemon then fetch the data
-    if (this.allPokemons.includes(taskToAdd.name)) {
-      try {
-        const tryToFetchPokemon = await this.fetchPokemon(taskToAdd.name);
-        if (tryToFetchPokemon) taskToAdd.name = `Catch ${taskToAdd.name}`;
-      } catch {}
-    }
-    // check if the input already exist, if so, return
-    if (await this.checkForDuplicates(taskToAdd.name)) {
-      console.log(`The task: ${taskToAdd.name} already in the list`);
-      return;
-    }
-    this.addTask(taskToAdd);
-    return taskToAdd.name;
+    return tasksName;
   }
 
   checkForCommas(str) {
@@ -57,10 +69,10 @@ module.exports = class ItemManager {
         // in case all the tokens are numbers then
         // check again the string and fetching pokemons
         // if not, just post the string as is
-        for (const token of tokens) this.checkInputString(token);
-        return true;
+        return tokens;
       }
     }
+    return str;
   }
 
   // check if string is valid pokemon id: positive integer
@@ -69,7 +81,8 @@ module.exports = class ItemManager {
       !isNaN(str) &&
       parseInt(Number(str)) == str &&
       !isNaN(parseInt(str, 10)) &&
-      str > 0
+      str > 0 &&
+      str < 900
     )
       return true;
     return false;
@@ -78,37 +91,45 @@ module.exports = class ItemManager {
   // function that check if the input allready exist
   // if so, alert the page the item display in
   async checkForDuplicates(taskToAdd) {
-    const allTasks = await this.readTasksFile(tasksFile);
-    for (const task of allTasks) {
-      if (task.name === taskToAdd) return true;
+    if (this.tasks.length > 0) {
+      for (const task of this.tasks) {
+        if (task === taskToAdd) return true;
+      }
+      return false;
     }
-    return false;
   }
 
   // fetch pokemon from API, add it to the pokemons map and post its name with "Catch"
   async fetchPokemon(pokemonId) {
     const pokemonData = await this.pokemonClient.getPokemonData(pokemonId);
-    if (!pokemonData) return;
-    return pokemonData;
+    if (await pokemonData) return pokemonData;
   }
 
   async addTask(task) {
-    const addedTask = [];
-    addedTask.push(task);
-    let content = await this.readTasksFile(tasksFile);
-    if (!content) content = [];
-    content = [...content, ...addedTask];
-    await this.writeToTasksFile(tasksFile, content);
+    this.tasks = [...this.tasks, task];
+    await this.writeToTasksFile(task);
   }
 
   async deleteTask(task) {
-    let content = await this.readTasksFile(tasksFile);
-    if (!content) return;
-    let index = content.findIndex(function(item, i){
-      return item.name === task.name
+    if (this.tasks.length == 0) return;
+    let index = this.tasks.findIndex(function (item, i) {
+      return item === task.name;
     });
-    delete content[index];
-    await this.writeToTasksFile(tasksFile, content);
+    delete this.tasks[index];
+    this.tasks = this.tasks.filter(function (elem) {
+      return elem != null;
+    });
+
+    fs.readFile(tasksFile, "utf8", function (error, data) {
+      if (error)
+        console.error(`Got an error trying to read the file: ${error.message}`);
+      let content = data.split("\n");
+      content.splice(index + 1, 1).join("\n");
+      fs.writeFile(tasksFile, content.join("\n"), function (error, data) {
+        if (error) console.error(`Failed to write to file ${error.message}`);
+      });
+    });
+    return task;
   }
 
   // fetching all the pokemons and hold it in list
@@ -120,39 +141,36 @@ module.exports = class ItemManager {
       this.allPokemons.push(pokemon.name);
   }
 
-  async sendPokemonsMapToClient() {
-    const pokemonsDataMap = new Map();
-    const tasks = await this.readTasksFile(tasksFile);
-    if (await tasks) {
-      for (const task of tasks) {
-        const tokens = task.name.split(" ");
-        if (tokens[0] === "Catch") {
-          const tryToFetchPokemonData = await this.fetchPokemon(tokens[1]);
-          if (tryToFetchPokemonData)
-            pokemonsDataMap.set(task.name, tryToFetchPokemonData);
-        }
-      }
-    }
-    const obj = Object.fromEntries(pokemonsDataMap);
-    return obj;
-  }
-
+  // get all tasks from the db
   async getAll() {
-    return await this.readTasksFile(tasksFile);
+    return this.tasks;
   }
 
-  async readTasksFile(file) {
+  // delete all tasks from the db
+  async deleteAllTasks() {
+    fs.writeFile(tasksFile, "", (error) => {
+      if (error) throw error;
+    });
+  }
+
+  async readTasksFile() {
     try {
-      const data = await fs.readFile(file);
-      return await JSON.parse(data.toString());
+      const content = readline.createInterface({
+        input: this.readStream,
+        crlfDelay: Infinity,
+      });
+      const contentArray = [];
+      for await (const line of content) contentArray.push(line);
+      return contentArray;
     } catch (error) {
       console.error(`Got an error trying to read the file: ${error.message}`);
     }
   }
 
-  async writeToTasksFile(file, content) {
+  async writeToTasksFile(content) {
     try {
-      await fs.writeFile(file, JSON.stringify(content));
+      const writeLine = (line) => this.writeStream.write(`\n${line}`);
+      writeLine(content.toString());
     } catch (error) {
       console.error(`Failed to write to file ${error.message}`);
     }

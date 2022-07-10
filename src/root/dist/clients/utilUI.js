@@ -14,35 +14,35 @@ export class utilUI {
   }
 
   async initClient() {
+    // initialize fetch all the data of the privious tasks and render it
     for (let i = 0; i < this.tasks.length; i++) {
       if (i % 5 == 0 && i > 0) {
         this.currentPage++;
         this.lastPage++;
         this.createPagingBtn(this.currentPage);
-        this.displayPage(this.currentPage)
       }
-      this.addTaskToHTML(this.tasks[i]);
     }
-    this.pokemonsMap = await this.getPokemonsMap();
-    await this.alertTasksWhenClickedWithData();
+    await this.displayPage(this.lastPage);
   }
 
-  async getPokemonsMap() {
-    const response = await fetch("http://localhost:8080/tasks/pokemons", {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-    });
-    let res = await response.json();
-    return res;
+  async getPokemons() {
+    const pokemonsArray = [];
+    for (const task of this.tasks) {
+      let taskWithoutQoutes = task.replace(/['"]+/g, "");
+      const tokens = taskWithoutQoutes.split(" ");
+      if (tokens[0] === "Catch") pokemonsArray.push(taskWithoutQoutes);
+    }
+    return pokemonsArray;
   }
 
-  async addNewTaskScheme(newTask) {
-    if (this.tasks.length === MAX_TASKS)
-      return; // throw error max tasks length
-    this.tasks.push(newTask);
+  async addTask(task) {
+    if (this.tasks.length === MAX_TASKS) {
+      // maximum tasks amount is 35
+      alert("couldn`t add new task! the limit of tasks is 35");
+      return;
+    }
+    // adding the tasks to the html, initialize new page if needed and display it.
+    this.tasks.push(task);
     this.clearInputLine();
     if (this.tasks.length % 5 == 1 && this.tasks.length > 1) {
       this.clearInnerHTML("#tasks");
@@ -53,10 +53,47 @@ export class utilUI {
     } else {
       this.displayPage(this.lastPage);
     }
-    this.addTaskToHTML(newTask);
-    await this.alertTasksWhenClickedWithData();
   }
 
+  // check if the input was a commas separated string
+  checkForCommas(str) {
+    if (str.indexOf(",") > -1) {
+      let nanFlag = false; // in case str is not a number
+      const tokens = str.split(",");
+      for (const token of tokens)
+        if (!this.isValidPokemonId(token)) nanFlag = true;
+      if (!nanFlag) {
+        // in case all the tokens are numbers then
+        // check again the string and fetching pokemons
+        // if not, just post the string as is
+        return tokens;
+      }
+    }
+    return str;
+  }
+
+  // check if string is valid pokemon id: positive integer
+  isValidPokemonId(str) {
+    if (
+      !isNaN(str) &&
+      parseInt(Number(str)) == str &&
+      !isNaN(parseInt(str, 10)) &&
+      str > 0 &&
+      str < 900
+    )
+      return true;
+    return false;
+  }
+
+  // here start the scheme of adding new task
+  async addNewTaskScheme(newTask) {
+    const tasks = this.checkForCommas(newTask);
+    for (const task of tasks) await this.addTask(task);
+  }
+
+  // this function calculate the items in page and return it.
+  // each page have 5 items so it calculate the amount of tasks and
+  // with the page number and return the belong tasks.
   async getItemsBelongToPage(page) {
     const tasksInPage = await this.tasks.slice();
     const res = tasksInPage.slice(
@@ -80,9 +117,11 @@ export class utilUI {
       this.currentPage
     );
     this.clearInnerHTML("#tasks");
+    // adding the tasks to the HTML
     if (tasksInCurrentPage)
       for (const task of tasksInCurrentPage) this.addTaskToHTML(task);
     const currentPageBtn = document.querySelector(".pagenumbers button.active");
+    // active the correct page btn
     if (currentPageBtn) {
       currentPageBtn.classList.remove("active");
       const newPageBtn = document.getElementById(this.currentPage);
@@ -119,7 +158,7 @@ export class utilUI {
 
   async addTaskToHTML(task) {
     this.taskToAdd.value = ""; // clean input line
-    let taskWithoutQoutes = task.replace(/['"]+/g, '');
+    let taskWithoutQoutes = task.replace(/['"]+/g, "");
     // adding the task to the html
     document.querySelector("#tasks").innerHTML += `
             <div class="task">
@@ -137,38 +176,57 @@ export class utilUI {
     for (const currentTask of currentTasks) {
       // in case clicking to remove then remove the element
       currentTask.onclick = async function () {
-        self.itemClients.deleteTask(this.parentNode.innerText);
-        this.parentNode.remove(); //remove node
+        const node = this.parentNode;
+        await self.itemClients.deleteTask(node.innerText);
+        // find the removed task in this.tasks array
+        let index = self.tasks.findIndex(function (item, i) {
+          let itemWithoutQoutes = item.replace(/['"]+/g, "");
+          return itemWithoutQoutes == node.innerText;
+        });
+        delete self.tasks[index]; // and delete it from the array
+        // remove the empty spot from this.tasks array
+        self.tasks = self.tasks.filter(function (elem) {
+          return elem != null;
+        });
         const tasksInCurrentPage = await self.getItemsBelongToPage(
           self.currentPage
         );
+        this.parentNode.remove(); //remove node
         // if it is the first page and no more items, just return and ready to add new
         if (self.currentPage === 1 && tasksInCurrentPage.length === 0) return;
-        self.updatePages(); // if no, update the pages
+        await self.updatePages(); // if no, update the pages
       };
     }
+    await this.alertTasksWhenClickedWithData();
   }
 
+  // adding the functionallity when clicking on task.
+  // if the task is pokemon its pop up the data of the pokemon
+  // otherwise its alert the task
   async alertTasksWhenClickedWithData() {
-    // adding the onclick functionallty to each task
     const currentTasks = document.querySelectorAll("[id=taskname]");
-    const tmpPokemonsArr = Array.from(Object.keys(this.pokemonsMap));
+    const tmpPokemonsArr = await this.getPokemons();
     const self = this; // inside the function, 'this' behave like html element (button)
     for (const currentTask of currentTasks) {
-      currentTask.onclick = function () {
-        // if the task is pokemon the display its data
-        if (tmpPokemonsArr.includes(this.parentNode.innerText))
-          self.popupPokemonData(this.parentNode.innerText);
-        else alert(currentTask.parentNode.innerText); // otherwise alert the task
-      };
+      if (currentTask.getAttribute("listener") !== "true") {
+        currentTask.addEventListener("click", async function (e) {
+          // if the task is pokemon then display its data
+          const elementClicked = e.target;
+          elementClicked.setAttribute("listener", "true");
+          if (tmpPokemonsArr.includes(currentTask.innerText)) {
+            await self.popupPokemonData(currentTask.innerText);
+          } else alert(currentTask.parentNode.innerText); // otherwise alert the task
+        });
+      }
     }
   }
 
+  // fixing tasks to page after deletion / updating
   async updatePages() {
-    // let currentPage = Math.round(this.tasks.length / 5);
     const items = await this.getItemsBelongToPage(this.currentPage);
+    const lastPageItems = await this.getItemsBelongToPage(this.lastPage);
     // if no more items in the current page, delete it visually
-    if (items.length === 0) {
+    if (items.length === 0 || lastPageItems.length === 0) {
       document.getElementById(this.lastPage).remove();
       this.lastPage--;
       this.displayPage(this.lastPage);
@@ -176,8 +234,33 @@ export class utilUI {
     this.displayPage(this.currentPage);
   }
 
+  // delete all pages and display the first page without any task
+  async deleteAllTasks() {
+    for (let i = this.lastPage; i > 0; i--) document.getElementById(i).remove();
+    this.tasks = [];
+    this.currentPage = this.lastPage = 1;
+    this.createPagingBtn(this.currentPage);
+    this.displayPage(this.currentPage);
+  }
+
+  async fetchPokemon(pokemonId) {
+    const pokemonData = await fetch("http://localhost:8080/tasks/pokemon", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Credentials": true,
+      },
+      body: JSON.stringify({ pokemonId }),
+    });
+    let res = await pokemonData.json();
+    return res;
+  }
+
   // this function manage the popup pokemons data when pokemon is pressed
-  popupPokemonData(task) {
+  async popupPokemonData(task) {
+    const tokens = task.split(" ");
     // when pokemon is clicked, the screen is freeze and popup box with
     // the pokemon data is display
     const popupBox = document.getElementById("popup-container");
@@ -192,42 +275,36 @@ export class utilUI {
         popupBox.style.display = "none";
       }
     };
-
-    const pokemonsMap = new Map(Object.entries(this.pokemonsMap));
+    const pokemonData = await this.fetchPokemon(tokens[1]);
     // not all pokemons have 2 types so use try & catch
     try {
-      document.getElementById("updateType").innerHTML = `${
-        pokemonsMap.get(task).types[0].type.name
-      } / ${pokemonsMap.get(task).types[1].type.name}`;
+      document.getElementById(
+        "updateType"
+      ).innerHTML = `${pokemonData.types[0].type.name} / ${pokemonData.types[1].type.name}`;
     } catch {
       // just one type
-      document.getElementById("updateType").innerHTML = `${
-        pokemonsMap.get(task).types[0].type.name
-      }`;
+      document.getElementById(
+        "updateType"
+      ).innerHTML = `${pokemonData.types[0].type.name}`;
     } finally {
       // adding the rest of the attribures belong to the specific pokemon
       document
         .getElementById("updateImg")
         .setAttribute(
           "src",
-          pokemonsMap.get(task).sprites.other.dream_world.front_default
+          pokemonData.sprites.other.dream_world.front_default
         );
-      document.getElementById("updateName").innerHTML =
-        pokemonsMap.get(task).name;
+      document.getElementById("updateName").innerHTML = pokemonData.name;
       document.getElementById("updateWeight").innerHTML = `${
-        pokemonsMap.get(task).weight / 10
+        pokemonData.weight / 10
       }kg`;
       document.getElementById("updateHeight").innerHTML = `${
-        pokemonsMap.get(task).height / 10
+        pokemonData.height / 10
       }m`;
     }
   }
 
   clearInputLine() {
     document.getElementById("input").value = "";
-  }
-
-  removeElement(elmId) {
-    document.getElementById(elmId).remove();
   }
 }
