@@ -2,7 +2,6 @@ const PokemonClient = require("../clients/PokemonClient");
 const tasksFile = "tasks.txt";
 const fs = require("fs");
 const readline = require("readline");
-const { kMaxLength } = require("buffer");
 
 module.exports = class ItemManager {
   constructor() {
