@@ -1,0 +1,31 @@
+{
+  "name": "project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:dev": "nodemon server.js",
+    "start": "node server.js",
+    "debug": "node --inspect-brk server.js"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "jedi_list.json"
+    ]
+  },
+  "keywords": [],
+  "author": "laredo",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "compression": "^1.7.4",
+    "ejs": "^3.1.8",
+    "express": "^4.18.1",
+    "express-async-errors": "^3.1.1",
+    "express-validator": "^6.14.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.16"
+  }
+}

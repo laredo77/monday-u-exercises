@@ -1,32 +1,34 @@
-import { ItemManager } from "./ItemManager.js";
+import { ItemClients } from "./clients/itemClients.js";
 
 class Main {
   constructor() {
     this.addBtn = document.getElementById("addTask");
     this.taskToAdd = document.getElementById("input");
     this.paginationElement = document.getElementById("pagination");
-    this.lexiSortBtn = document.getElementById("lexiSort");
-    this.chronoSortBtn = document.getElementById("chronoSort");
     this.deleteAllBtn = document.getElementById("deleteAll");
     this.currentPage = 1;
-    this.itemManager = new ItemManager();
+    this.itemClient = new ItemClients();
     this.maxTasks = 35;
+    this.taskCounter = 0;
   }
 
   // add event listeners to the buttons of the app
-  init() {
-    this.addBtn.addEventListener("click", ({ target }) => {
+  async init() {
+    this.addBtn.addEventListener("click", async ({ target }) => {
       // if input is white spaces the return
       if (this.taskToAdd.value.trim().length === 0) {
         alert("Undefined input");
         this.taskToAdd.value = "";
       } // if the app has maximum of tasks (35) alert and dont add until deletion
-      else if (this.itemManager.getChronologicalArr().length === this.maxTasks)
+      else if (this.taskCounter === this.maxTasks)
         alert("ToDo list is full (35 Items)");
-      else this.itemManager.checkInputString(this.taskToAdd.value);
+      else {
+        await this.itemClient.addNewTask(this.taskToAdd.value);
+        this.taskCounter++;
+      }
     });
 
-    // if the user press keypress the task will add as well
+    // if the user press "Enter" the task will add as well
     this.taskToAdd.addEventListener("keypress", function (event) {
       if (event.key === "Enter") {
         event.preventDefault();
@@ -34,26 +36,15 @@ class Main {
       }
     });
 
-    this.lexiSortBtn.addEventListener("click", ({ target }) => {
-      // if the list is empty, cannot sort and alert
-      if (this.itemManager.getItemsBelongToPage(1).length === 0)
-        alert("Cannot sort an empty tasks list");
-      else this.itemManager.lexicographicallySort();
-    });
-
-    this.chronoSortBtn.addEventListener("click", ({ target }) => {
-      // if the list is empty, cannot sort and alert
-      if (this.itemManager.getItemsBelongToPage(1).length === 0)
-        alert("Cannot sort an empty tasks list");
-      else this.itemManager.chronologicalSort();
-    });
-
     // deleting all todo's
     this.deleteAllBtn.addEventListener("click", ({ target }) => {
       // if the list is empty, cannot delete and alert
-      if (this.itemManager.getItemsBelongToPage(1).length === 0)
+      if (this.taskCounter.length === 0)
         alert("Cannot delete an empty tasks list");
-      else this.itemManager.deleteAll();
+      else {
+        this.itemClient.deleteAllTasks();
+        this.taskCounter = 0;
+      }
     });
   }
 }
