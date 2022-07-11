@@ -162,6 +162,7 @@ export class utilUI {
     // adding the task to the html
     document.querySelector("#tasks").innerHTML += `
             <div class="task">
+                <input type="checkbox" id="checkbox" style="margin-right: 6px;">
                 <span id="taskname" style="width:600px;">
                   ${taskWithoutQoutes}
                 </span>
@@ -170,6 +171,12 @@ export class utilUI {
                 </button>
             </div>
           `;
+    await this.deleteButtonFunction();
+    await this.checkBoxFunction();
+    await this.alertTasksWhenClickedWithData();
+  }
+
+  async deleteButtonFunction() {
     const self = this; // inside the function, 'this' behave like html element (button)
     // and adding delete functionallty to the tasks element
     const currentTasks = document.querySelectorAll(".delete");
@@ -197,7 +204,19 @@ export class utilUI {
         await self.updatePages(); // if no, update the pages
       };
     }
-    await this.alertTasksWhenClickedWithData();
+  }
+
+  async checkBoxFunction() {
+    const currentTasks = document.querySelectorAll("[id=checkbox]");
+    for (const currentTask of currentTasks) {
+      currentTask.onclick = async function () {
+        if (currentTask.checked == true) {
+          alert("checked!"); // should change status in the DB
+        } else {
+          alert("unchecked!"); // should change status in the DB
+        }
+      };
+    }
   }
 
   // adding the functionallity when clicking on task.
