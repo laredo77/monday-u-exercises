@@ -6,13 +6,6 @@ export class ItemClients {
   }
 
   async initClient() {
-    await fetch("http://localhost:8080/tasks/", {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-    });
     await this.getAllTasks();
     this.utilUI = new utilUI(this, this.tasks);
   }
@@ -26,8 +19,15 @@ export class ItemClients {
         "Content-Type": "application/json",
       },
     });
-    let res = await fetchTasks.json();
-    for (const task in res) this.tasks.push(JSON.stringify(res[task]));
+    let resultFromServer = await fetchTasks.json();
+    if ((await resultFromServer.status) == false) {
+      console.log(resultFromServer.code);
+      return;
+    } else {
+      console.log(resultFromServer.code);
+      for (const task in resultFromServer.task)
+        this.tasks.push(resultFromServer.task[task]);
+    }
   }
 
   async addNewTask(taskName) {
@@ -42,19 +42,18 @@ export class ItemClients {
       },
       body: JSON.stringify(newTask),
     });
-    const res = await response.json();
-    if ((await res[0]) == null) {
-      alert("couldn`t add the task!");
+    const resultFromServer = await response.json();
+    if ((await resultFromServer.status) == false) {
+      console.log(resultFromServer.code);
       this.utilUI.clearInputLine();
-      return;
-    }
-    if (await res) {
-      await this.utilUI.addNewTaskScheme(res);
+    } else {
+      console.log(resultFromServer.code);
+      await this.utilUI.addNewTaskScheme(resultFromServer.task);
     }
   }
 
   async deleteTask(task) {
-    await fetch("http://localhost:8080/tasks/", {
+    const response = await fetch("http://localhost:8080/tasks/", {
       method: "DELETE",
       headers: {
         Accept: "application/json",
@@ -62,16 +61,28 @@ export class ItemClients {
       },
       body: JSON.stringify({ name: task }),
     });
+    const resultFromServer = await response.json();
+    if ((await resultFromServer.status) == false) {
+      console.log(resultFromServer.code);
+    } else {
+      console.log(resultFromServer.code);
+    }
   }
 
   async deleteAllTasks() {
-    await fetch("http://localhost:8080/tasks/all", {
+    const response = await fetch("http://localhost:8080/tasks/all", {
       method: "DELETE",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
       },
     });
-    await this.utilUI.deleteAllTasks();
+    const resultFromServer = await response.json();
+    if ((await resultFromServer.status) == false) {
+      console.log(resultFromServer.code);
+    } else {
+      console.log(resultFromServer.code);
+      await this.utilUI.deleteAllTasks();
+    }
   }
 }

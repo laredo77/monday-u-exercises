@@ -28,7 +28,7 @@ export class utilUI {
   async getPokemons() {
     const pokemonsArray = [];
     for (const task of this.tasks) {
-      let taskWithoutQoutes = task.replace(/['"]+/g, "");
+      let taskWithoutQoutes = task.ItemName.replace(/['"]+/g, "");
       const tokens = taskWithoutQoutes.split(" ");
       if (tokens[0] === "Catch") pokemonsArray.push(taskWithoutQoutes);
     }
@@ -42,7 +42,7 @@ export class utilUI {
       return;
     }
     // adding the tasks to the html, initialize new page if needed and display it.
-    this.tasks.push(task);
+    this.tasks.push({ ItemName: task, PokemonId: null, status: null });
     this.clearInputLine();
     if (this.tasks.length % 5 == 1 && this.tasks.length > 1) {
       this.clearInnerHTML("#tasks");
@@ -95,7 +95,11 @@ export class utilUI {
   // each page have 5 items so it calculate the amount of tasks and
   // with the page number and return the belong tasks.
   async getItemsBelongToPage(page) {
-    const tasksInPage = await this.tasks.slice();
+    const tasksInPage = [];
+    for (const task of this.tasks) {
+      tasksInPage.push(task.ItemName);
+    }
+    // const tasksInPage = await this.tasks.slice();
     const res = tasksInPage.slice(
       5 * (page - 1),
       Math.min(this.tasks.length, 5 * page)
@@ -162,6 +166,7 @@ export class utilUI {
     // adding the task to the html
     document.querySelector("#tasks").innerHTML += `
             <div class="task">
+                <input type="checkbox" id="checkbox" style="margin-right: 6px;">
                 <span id="taskname" style="width:600px;">
                   ${taskWithoutQoutes}
                 </span>
@@ -170,6 +175,12 @@ export class utilUI {
                 </button>
             </div>
           `;
+    await this.deleteButtonFunction();
+    await this.checkBoxFunction();
+    await this.alertTasksWhenClickedWithData();
+  }
+
+  async deleteButtonFunction() {
     const self = this; // inside the function, 'this' behave like html element (button)
     // and adding delete functionallty to the tasks element
     const currentTasks = document.querySelectorAll(".delete");
@@ -179,7 +190,9 @@ export class utilUI {
         const node = this.parentNode;
         await self.itemClients.deleteTask(node.innerText);
         // find the removed task in this.tasks array
-        let index = self.tasks.findIndex(function (item, i) {
+        const tasks = [];
+        for (const task of self.tasks) tasks.push(task.ItemName);
+        let index = tasks.findIndex(function (item, i) {
           let itemWithoutQoutes = item.replace(/['"]+/g, "");
           return itemWithoutQoutes == node.innerText;
         });
@@ -197,7 +210,49 @@ export class utilUI {
         await self.updatePages(); // if no, update the pages
       };
     }
-    await this.alertTasksWhenClickedWithData();
+  }
+
+  async checkStatusOfTask(task) {
+    const response = await fetch("http://localhost:8080/tasks/getTaskStatus", {
+      method: "PUT",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ task: task }),
+    });
+    let resultFromServer = await response.json();
+    if (await resultFromServer) {
+      return resultFromServer;
+    }
+    return false;
+  }
+
+  async checkBoxFunction() {
+    const currentTasks = document.querySelectorAll("[id=checkbox]");
+    for (const currentTask of currentTasks) {
+      const taskStatus = await this.checkStatusOfTask(
+        currentTask.parentNode.innerText
+      );
+      if (taskStatus) currentTask.checked = true;
+      currentTask.onclick = async function () {
+        let checkbox = false;
+        if (currentTask.checked == true) checkbox = true;
+        const response = await fetch("http://localhost:8080/tasks/status", {
+          method: "PUT",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            task: currentTask.parentNode.innerText,
+            status: checkbox,
+          }),
+        });
+        const resultFromServer = await response.json();
+        console.log(resultFromServer.code);
+      };
+    }
   }
 
   // adding the functionallity when clicking on task.
@@ -215,7 +270,8 @@ export class utilUI {
           elementClicked.setAttribute("listener", "true");
           if (tmpPokemonsArr.includes(currentTask.innerText)) {
             await self.popupPokemonData(currentTask.innerText);
-          } else alert(currentTask.parentNode.innerText); // otherwise alert the task
+          }
+          // } else alert(currentTask.parentNode.innerText); // otherwise alert the task
         });
       }
     }

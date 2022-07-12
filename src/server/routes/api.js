@@ -6,16 +6,18 @@ const {
   deleteTask,
   deleteAllTasks,
   fetchPokemon,
-  initClient,
+  changeStatus,
+  getTaskStatus,
 } = require("../controllers/routesController");
 
 const todoRouter = express.Router();
 
-todoRouter.get("/", initClient);
 todoRouter.get("/all", getAllTasks);
 todoRouter.post("/pokemon", fetchPokemon);
 todoRouter.post("/", addNewTask);
 todoRouter.delete("/", deleteTask);
 todoRouter.delete("/all", deleteAllTasks);
+todoRouter.put("/status", changeStatus);
+todoRouter.put("/getTaskStatus", getTaskStatus);
 
 module.exports = todoRouter;
