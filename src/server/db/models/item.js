@@ -8,6 +8,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       ItemName: DataTypes.STRING,
       PokemonId: DataTypes.STRING,
+      status: DataTypes.BOOLEAN,
     },
     {
       sequelize,

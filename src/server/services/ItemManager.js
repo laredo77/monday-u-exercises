@@ -36,10 +36,14 @@ module.exports = class ItemManager {
   }
 
   async addTaskToDB(task) {
-    await Item.create({
-      ItemName: task.name,
-      PokemonId: task.pokemonId,
-    });
+    try {
+      await Item.create({
+        ItemName: task.name,
+        PokemonId: task.pokemonId,
+      });
+    } catch (error) {
+      console.log(`couldn't write to the DB: ${error.message}`);
+    }
   }
 
   async checkInputString(taskToAdd) {
@@ -148,7 +152,7 @@ module.exports = class ItemManager {
     try {
       const tasksObjects = await Item.findAll({ raw: true });
       const tasks = [];
-      for (const task of tasksObjects) tasks.push(task.ItemName);
+      for (const task of tasksObjects) tasks.push(task);
       return {
         task: tasks,
         status: true,
@@ -181,5 +185,31 @@ module.exports = class ItemManager {
         code: `Got an error trying to remove all tasks from DB: ${error.message}`,
       };
     }
+  }
+
+  async changeStatus(task) {
+    try {
+      await Item.update(
+        { status: task.status },
+        { where: { ItemName: task.task } }
+      );
+      return {
+        status: true,
+        code: `The status of ${task.task} changed successfully to ${task.status}`,
+      };
+    } catch (error) {
+      return {
+        status: false,
+        code: `couldn't change the status of the task: ${error.message}`,
+      };
+    }
+  }
+
+  async getTaskStatus(task) {
+    const item = await Item.findOne({
+      where: { ItemName: task.task },
+      raw: true,
+    });
+    return item.status;
   }
 };

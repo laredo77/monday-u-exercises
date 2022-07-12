@@ -26,7 +26,7 @@ export class ItemClients {
     } else {
       console.log(resultFromServer.code);
       for (const task in resultFromServer.task)
-        this.tasks.push(JSON.stringify(resultFromServer.task[task]));
+        this.tasks.push(resultFromServer.task[task]);
     }
   }
 

@@ -17,6 +17,16 @@ async function addNewTask(req, res) {
   res.status(200).json(response);
 }
 
+async function changeStatus(req, res) {
+  const response = await itemManager.changeStatus(req.body);
+  res.status(200).json(response);
+}
+
+async function getTaskStatus(req, res) {
+  const response = await itemManager.getTaskStatus(req.body);
+  res.status(200).json(response);
+}
+
 async function deleteTask(req, res) {
   const response = await itemManager.deleteTask(req.body);
   res.status(200).json(response);
@@ -33,4 +43,6 @@ module.exports = {
   deleteTask,
   deleteAllTasks,
   fetchPokemon,
+  changeStatus,
+  getTaskStatus,
 };
