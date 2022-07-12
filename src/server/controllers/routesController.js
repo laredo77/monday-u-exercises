@@ -1,11 +1,6 @@
 const ItemManager = require("../../server/services/ItemManager");
 const itemManager = new ItemManager();
 
-async function initClient(req, res) {
-  const response = await itemManager.initClient(req.body);
-  res.status(200).json(response);
-}
-
 async function getAllTasks(req, res) {
   let data = await itemManager.getAll();
   if (!data) data = [];
@@ -38,5 +33,4 @@ module.exports = {
   deleteTask,
   deleteAllTasks,
   fetchPokemon,
-  initClient,
 };
