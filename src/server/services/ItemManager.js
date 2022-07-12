@@ -1,20 +1,21 @@
 const PokemonClient = require("../clients/PokemonClient");
-const tasksFile = "tasks.txt";
-const fs = require("fs");
-const readline = require("readline");
+//const tasksFile = "tasks.txt";
+//const fs = require("fs");
+//const readline = require("readline");
+const { Item } = require("../db/models");
 
 module.exports = class ItemManager {
   constructor() {
     this.pokemonClient = new PokemonClient();
     this.fetchAllPokemons();
-    this.tasks = [];
-    this.writeStream = fs.createWriteStream(tasksFile, { flags: "a" });
-    this.readStream = fs.createReadStream(tasksFile);
+    // this.tasks = [];
+    // this.writeStream = fs.createWriteStream(tasksFile, { flags: "a" });
+    // this.readStream = fs.createReadStream(tasksFile);
   }
 
   async initClient() {
     // get all tasks from the db
-    this.tasks = await this.readTasksFile();
+    // this.tasks = await this.readTasksFile();
   }
 
   async addNewTaskScheme(task) {
@@ -29,22 +30,43 @@ module.exports = class ItemManager {
       try {
         const tryToFetchPokemon = await this.fetchPokemon(task);
         if (tryToFetchPokemon) task = `Catch ${task}`;
-      } catch {}
+      } catch (error) {
+        console.error(
+          `Got an error while trying to fetch pokemon: ${error.message}`
+        );
+        throw new Error(error);
+      }
     }
     // check if the input already exist, if so, return
-    if (await this.checkForDuplicates(task)) {
-      console.log(`The task: ${task} already in the list`);
-      return null;
-    }
-    await this.addTask(task);
+    // if (await this.checkForDuplicates(task)) {
+    //   console.log(`The task: ${task} already in the list`);
+    //   return null;
+    // }
+    //await this.addTask(task);
+    await this.addTaskToDB(task);
     return task;
   }
+
+  // addTaskToDB = async task => {
+  //   await Todo.create({ itemName: task });
+  // };
+
+  addTaskToDB = async (item) => {
+    await Item.create({ itemName: item });
+  };
+
+  // async addTaskToDB(task) {
+  //   await Todo.create({ // get array
+  //     "ItemName": "MyTask",
+  //     "PokemonId": 123
+  //     // add pokemon id
+  //   });
+  // }
 
   async checkInputString(taskToAdd) {
     // check if the input separate by commas in purpose
     // to fetch all pokemons (in case input is id's)
     const res = this.checkForCommas(taskToAdd.name);
-    if (!res) return;
     const tasksName = [];
     if (Array.isArray(res)) {
       for (const task of res) {
@@ -90,12 +112,18 @@ module.exports = class ItemManager {
   // function that check if the input allready exist
   // if so, alert the page the item display in
   async checkForDuplicates(taskToAdd) {
-    if (this.tasks.length > 0) {
-      for (const task of this.tasks) {
-        if (task === taskToAdd) return true;
-      }
-      return false;
-    }
+    // if (this.tasks.length > 0) {
+    //   for (const task of this.tasks) {
+    //     if (task === taskToAdd) return true;
+    //   }
+    //   return false;
+    // }
+    // const todo = await Todo.findOne({
+    //   where: { ItemName: taskToAdd },
+    //   raw: true,
+    // });
+    // if (todo) return true;
+    // return false;
   }
 
   // fetch pokemon from API, add it to the pokemons map and post its name with "Catch"
@@ -104,31 +132,30 @@ module.exports = class ItemManager {
     if (await pokemonData) return pokemonData;
   }
 
-  async addTask(task) {
-    this.tasks = [...this.tasks, task];
-    await this.writeToTasksFile(task);
-  }
+  // async addTask(task) {
+  //   // this.tasks = [...this.tasks, task];
+  //   // await this.writeToTasksFile(task);
+  // }
 
   async deleteTask(task) {
-    if (this.tasks.length == 0) return;
-    let index = this.tasks.findIndex(function (item, i) {
-      return item === task.name;
-    });
-    delete this.tasks[index];
-    this.tasks = this.tasks.filter(function (elem) {
-      return elem != null;
-    });
-
-    fs.readFile(tasksFile, "utf8", function (error, data) {
-      if (error)
-        console.error(`Got an error trying to read the file: ${error.message}`);
-      let content = data.split("\n");
-      content.splice(index + 1, 1).join("\n");
-      fs.writeFile(tasksFile, content.join("\n"), function (error, data) {
-        if (error) console.error(`Failed to write to file ${error.message}`);
-      });
-    });
-    return task;
+    // if (this.tasks.length == 0) return;
+    // let index = this.tasks.findIndex(function (item, i) {
+    //   return item === task.name;
+    // });
+    // delete this.tasks[index];
+    // this.tasks = this.tasks.filter(function (elem) {
+    //   return elem != null;
+    // });
+    // fs.readFile(tasksFile, "utf8", function (error, data) {
+    //   if (error)
+    //     console.error(`Got an error trying to read the file: ${error.message}`);
+    //   let content = data.split("\n");
+    //   content.splice(index + 1, 1).join("\n");
+    //   fs.writeFile(tasksFile, content.join("\n"), function (error, data) {
+    //     if (error) console.error(`Failed to write to file ${error.message}`);
+    //   });
+    // });
+    // return task;
   }
 
   // fetching all the pokemons and hold it in list
@@ -142,36 +169,23 @@ module.exports = class ItemManager {
 
   // get all tasks from the db
   async getAll() {
-    return this.tasks;
+    // try {
+    //   this.tasks = await todo.findAll({ raw: true });
+    //   return this.tasks;
+    // } catch (error) {
+    //   console.error(`Got an error trying to read from DB: ${error.message}`);
+    //   throw new Error(error);
+    // }
   }
 
   // delete all tasks from the db
   async deleteAllTasks() {
-    fs.writeFile(tasksFile, "", (error) => {
-      if (error) throw error;
-    });
-  }
-
-  async readTasksFile() {
-    try {
-      const content = readline.createInterface({
-        input: this.readStream,
-        crlfDelay: Infinity,
-      });
-      const contentArray = [];
-      for await (const line of content) contentArray.push(line);
-      return contentArray;
-    } catch (error) {
-      console.error(`Got an error trying to read the file: ${error.message}`);
-    }
-  }
-
-  async writeToTasksFile(content) {
-    try {
-      const writeLine = (line) => this.writeStream.write(`\n${line}`);
-      writeLine(content.toString());
-    } catch (error) {
-      console.error(`Failed to write to file ${error.message}`);
-    }
+    // fs.writeFile(tasksFile, "", (error) => {
+    //   if (error) throw error;
+    // });
+    // await Todo.destroy({
+    //   where: {},
+    //   truncate: true,
+    // });
   }
 };
