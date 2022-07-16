@@ -1,0 +1,11 @@
+.todoList {
+    width: 40%;
+    min-width: 450px;
+    position: absolute;
+    transform: translate(-50%,-50%);
+    top: 55%;
+    left: 50%;
+    height: 500px;
+    background: rgb(255, 255, 255);
+    border-radius: 10px;
+  }

@@ -8,7 +8,6 @@ const port = 8080;
 const app = express();
 
 app.use([logger, compression(), express.json()]);
-app.use("/", express.static("dist"));
 app.use("/tasks", todoRouter);
 
 app.listen(port, () => {
