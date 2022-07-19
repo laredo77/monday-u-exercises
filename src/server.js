@@ -6,8 +6,9 @@ const logger = require("./server/middleware/logger");
 const todoRouter = require("./server/routes/api");
 const port = 8080;
 const app = express();
+const cors = require("cors");
 
-app.use([logger, compression(), express.json()]);
+app.use([logger, cors(), compression(), express.json()]);
 app.use("/tasks", todoRouter);
 
 app.listen(port, () => {

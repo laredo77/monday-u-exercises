@@ -1,0 +1,13 @@
+.itemList {
+    position: relative;
+    background-color: #ffffff;
+    padding: 10px 20px;
+    margin-top: 5px;
+    margin-left: 10px;
+    border-radius: 10px;
+    border-style: solid;
+    border-color: black;
+    border-width: 1px;
+    width: 95%;
+    height: 300px;
+}

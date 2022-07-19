@@ -25,6 +25,7 @@ body {
 
 }
 
+/* AddTaskBar */
 #new-task-component {
     position: relative;
     padding: 30px 20px;
@@ -63,6 +64,7 @@ body {
     outline: none;
 }
 
+/* task container */
 #tasks {
     position: relative;
     background-color: #ffffff;
@@ -73,6 +75,7 @@ body {
     height: 300px;
 }
 
+/* task */
 .task{
     background-color: #c5e1e6;
     height: 50px;
@@ -110,6 +113,7 @@ body {
     outline: none;
 }
 
+/* buttons bar */
 #buttonsBar button {
   position: relative;
   width: 30%;
@@ -133,6 +137,7 @@ body {
     text-decoration: line-through;
 }
 
+/* page */
 .pagenumbers {
   position: relative;
 	display: flex;

@@ -1,0 +1,18 @@
+.buttonsBar button {
+    position: relative;
+    width: 30%;
+    left: 35%;
+    height: 30px;
+    border-radius: 100px;
+    font-family: 'Poppins',sans-serif;
+    font-weight: 500;
+    font-size: 12px;
+    background-color: #0d75ec;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    outline: none;
+    align-items: center;
+    justify-content: space-between;
+    display: inline;
+  }
