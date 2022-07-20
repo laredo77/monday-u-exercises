@@ -40,6 +40,7 @@ module.exports = class ItemManager {
       await Item.create({
         ItemName: task.name,
         PokemonId: task.pokemonId,
+        status: false,
       });
     } catch (error) {
       console.log(`couldn't write to the DB: ${error.message}`);
@@ -175,9 +176,9 @@ module.exports = class ItemManager {
   // get all tasks from the db
   async getAll() {
     try {
-      const tasksObjects = await Item.findAll({ raw: true });
-      const tasks = [];
-      for (const task of tasksObjects) tasks.push(task);
+      const tasks = await Item.findAll({ raw: true });
+      //const tasks = [];
+      //for (const task of tasksObjects) tasks.push(task);
       return {
         task: tasks,
         status: true,

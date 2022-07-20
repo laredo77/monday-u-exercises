@@ -1,8 +1,4 @@
 export class ItemClients {
-  // static async initClient() {
-  //   await this.getAllTasks();
-  // }
-
   static async getAllItems() {
     const response = await fetch("http://localhost:8080/tasks/all", {
       method: "GET",
@@ -45,6 +41,21 @@ export class ItemClients {
         Accept: "application/json",
         "Content-Type": "application/json",
       },
+    });
+    return await response.json();
+  }
+
+  static async changeItemStatus(item) {
+    const response = await fetch("http://localhost:8080/tasks/status", {
+      method: "PUT",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        task: item.ItemName,
+        status: item.status,
+      }),
     });
     return await response.json();
   }

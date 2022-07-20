@@ -1,4 +1,4 @@
-import style from "./ButtonsBar.module.css";
+import style from "./ButtonsBar.css";
 import Client from "../../../ItemClients";
 // import Box from "monday-ui-react-core/dist/Box";
 // import "monday-ui-react-core/dist/main.css";
@@ -12,15 +12,22 @@ function ButtonsBar(props) {
             props.SetItemsList([]);
             props.SetCurrentPage(1);
         }
-        console.log(resultFromServer.code);
+        props.SetConsoleLine(resultFromServer.code);
     }
 
     return (
-        <div className={style.buttonsBar}>
+        <div className="buttonsBar">
+            <div className="terminalContainer">
+                <div className="fakeMenu">
+                    <div className="fakeButtons fakeClose"></div>
+                    <div className="fakeButtons fakeMinimize"></div>
+                    <div className="fakeButtons fakeZoom"></div>
+                </div>
+                <div className="fakeScreen">
+                    <p className="line1">{'>'} {props.ConsoleLine}<span className="cursor1">_</span></p>
+                </div>
+            </div>
             <button id="deleteAll" onClick={deleteAll}>Delete All</button>
-            {/* <DialogContentContainer size={DialogContentContainer.sizes.LARGE}
-            className={style.dialogcontainer}></DialogContentContainer> */}
-            {/* <div className={style.alert} role="alert">This</div> */}
         </div>
     )
 }

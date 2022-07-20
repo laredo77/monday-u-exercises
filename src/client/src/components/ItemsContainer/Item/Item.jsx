@@ -13,21 +13,31 @@ function Item(props) {
             }
             props.ItemsList.splice(itemIndex, 1)
             props.SetItemsList([...props.ItemsList]);
+            if (props.ItemsList.length % 5 === 0 && props.CurrentPage > 1) {
+                const newCurrentPage = props.CurrentPage - 1;
+                props.SetCurrentPage(newCurrentPage);
+            }
         }
-        console.log(resultFromServer.code);
+        props.SetConsoleLine(resultFromServer.code);
     }
 
-    const onChangeItemStatus = async () => {
-
-        //props.status = !props.status;
-        //console.log(props.ItemName)
-        //console.log(props.status);
+    const onChangeItemStatus = async (event) => {
+        props.SetConsoleLine(props.status);
+        const resultFromServer = await Client.changeItemStatus(
+            {ItemName: props.ItemName, status: event.target.checked});
+        for(const item of props.ItemsList) {
+            if (item.ItemName === props.ItemName) {
+                item.status = !event.target.checked;
+            }
+        }
+        props.SetConsoleLine(resultFromServer.code);
     }
 
     return (
         <div className={style.item}>
-            <input className={style.checkbox} type="checkbox" id="checkbox"
-            onClick={() => onChangeItemStatus()}/>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" />
+            <input className={style.checkbox} checked={props.status} type="checkbox" id="checkbox"
+            onChange={onChangeItemStatus}/>
             <span className={style.itemname} id="taskname">{props.ItemName}</span>
             <button className={"delete"} onClick={() => onDeleteItem()}>
                 <i className="far fa-trash-alt"></i>
@@ -38,7 +48,6 @@ function Item(props) {
 
 Item.propTypes = {
     ItemName: PropTypes.string,
-    PokemonId: PropTypes.string,
     status: PropTypes.bool
 }
 

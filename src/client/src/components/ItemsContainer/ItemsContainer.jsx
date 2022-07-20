@@ -10,11 +10,11 @@ function ItemsContainer() {
     const [inputValue, setInputValue] = useState("");
     const [itemsList, setItemsList] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
+    const [consoleLine, setConsoleLine] = useState("");
 
     const itemsPerPage = 5;
     let currentPageItems = itemsList.slice(
         ((currentPage - 1) * itemsPerPage), (currentPage * itemsPerPage));
-
     useEffect(() => {
         initClient();
     }, []);
@@ -23,24 +23,30 @@ function ItemsContainer() {
       const resultFromServer = await Client.getAllItems();
       if ((await resultFromServer.status) == true) {
         const items = [];
-        for (const item in resultFromServer.task)
-            items.push(resultFromServer.task[item]);
+        for (const item in resultFromServer.task) {
+            //items.push(resultFromServer.task[item]);
+            items.push({ItemName: resultFromServer.task[item].ItemName,
+                status: Boolean(resultFromServer.task[item].status),
+                })
+        }  
         setItemsList(items);
       }
-      console.log(resultFromServer.code);
+      setConsoleLine(resultFromServer.code);
     };
 
     const addNewItem = async (itemName) => {
         const resultFromServer = await Client.addNewItem(itemName);
         if ((await resultFromServer.status) == true) {
             for (const item of resultFromServer.task)
-                itemsList.push({ItemName: item, PokemonId: null, status: null});
+                itemsList.push({
+                    ItemName: item,
+                    status: false});
             setItemsList([...itemsList]);
             const lastPage = Math.ceil(itemsList.length / 5);
             if (lastPage > currentPage)
                 setCurrentPage(lastPage);
         }
-        console.log(resultFromServer.code);
+        setConsoleLine(resultFromServer.code);
     }
 
     return (
@@ -50,15 +56,22 @@ function ItemsContainer() {
             InputValue={inputValue}
             ItemsList={itemsList}
             AddNewItem={addNewItem}
+            SetConsoleLine={setConsoleLine}
             ></AddItemkBar>
             <ButtonsBar 
             SetItemsList={setItemsList}
-            SetCurrentPage={setCurrentPage}></ButtonsBar>
+            SetCurrentPage={setCurrentPage}
+            ConsoleLine={consoleLine}
+            SetConsoleLine={setConsoleLine}>
+            </ButtonsBar>
             <ItemList 
             CurrentPageItems={currentPageItems}
             ItemsList={itemsList}
             SetItemsList={setItemsList}
-            ></ItemList>
+            SetConsoleLine={setConsoleLine}
+            SetCurrentPage={setCurrentPage}
+            CurrentPage={currentPage}>
+            </ItemList>
             <Pagination 
             ItemsList={itemsList}
             SetCurrentPage={setCurrentPage}

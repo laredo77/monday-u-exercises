@@ -1,6 +1,7 @@
 import style from "./AddItemBar.module.css";
 
 const MAX_ITEMS = 35;
+const MAX_CHARS = 30;
 
 function AddItemBar(props) {
 
@@ -14,9 +15,11 @@ function AddItemBar(props) {
     
     const addNewItem = async () => {
         if (props.InputValue.trim().length === 0)
-            console.log("Undefined input: Cannot add blank item");
+            props.SetConsoleLine("Undefined input: Cannot add blank item");
         else if (props.ItemsList.length === MAX_ITEMS)
-            console.log("ToDo list is full (35 Items)");
+            props.SetConsoleLine("ToDo list is full (35 Items)");
+        else if (props.InputValue.length >= MAX_CHARS)
+            props.SetConsoleLine("Cannot add item with more then 30 letters length");
         else
             await props.AddNewItem(props.InputValue);
         props.SetInputLineValue("");
@@ -25,7 +28,7 @@ function AddItemBar(props) {
     return (
         <div className={style.addItemBar}>
             <input id="input" type="text" placeholder="Task to be done.."
-            onChange={onChangeInputLine} onKeyPress={onKeyPress}></input>
+            onChange={onChangeInputLine} onKeyPress={onKeyPress} value={props.InputValue}></input>
             <button id="addItemBar" onClick={addNewItem}>Add</button>
         </div>
     )

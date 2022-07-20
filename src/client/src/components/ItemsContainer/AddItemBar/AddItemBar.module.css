@@ -1,7 +1,7 @@
 .addItemBar {
     position: relative;
-    padding: 30px 20px;
-    height: 90px;
+    padding: 20px 10px;
+    height: 70px;
 }
 .addItemBar input {
     width: 75%;

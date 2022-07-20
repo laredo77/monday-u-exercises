@@ -21,7 +21,7 @@ function Pagination(props) {
             nextLinkClassName={"nextBttn"}
             disabledClassName={"paginationDisabled"}
             activeClassName={"paginationActive"}
-            // forcePage={props.CurrentPage}
+            forcePage={props.CurrentPage - 1}
           />
       )
 }
