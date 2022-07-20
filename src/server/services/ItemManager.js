@@ -60,12 +60,37 @@ module.exports = class ItemManager {
       const retVal = await this.addNewTaskScheme(res);
       tasksName.push(retVal);
     }
-    if (tasksName.includes(null)) {
+    if (tasksName[0] === null && tasksName.length == 1) {
       return {
         task: tasksName,
         status: false,
-        code: `Some of the tasks: ${taskToAdd.name} already in the list. cannot add duplicate tasks`,
+        code: `The item: {${taskToAdd.name}}, already in the list. cannot add duplicate items`,
       };
+    }
+    if (tasksName.includes(null)) {
+      if (tasksName.every((element) => element === null)) {
+        return {
+          task: tasksName,
+          status: false,
+          code: `All of the items: {${taskToAdd.name}} already in the list. cannot add duplicate tasks`,
+        };
+      } else {
+        const nullIndexs = [];
+        for (let i = 0; i < tasksName.length; i++) {
+          if (tasksName[i] === null) nullIndexs.push(i);
+        }
+        const nonNullItems = tasksName.filter(function (item) {
+          return item != null;
+        });
+        const items = taskToAdd.name.split(",");
+        const nullItems = [];
+        for (const index of nullIndexs) nullItems.push(items[index]);
+        return {
+          task: nonNullItems,
+          status: true,
+          code: `The tasks: {${nullItems}} already in the list. cannot add duplicate tasks; The items: {${nonNullItems}} added to the Todo list`,
+        };
+      }
     }
     return {
       task: tasksName,

@@ -1,19 +1,24 @@
 import PropTypes from 'prop-types';
 import style from "./Item.module.css";
+import Client from "../../../ItemClients";
 
 function Item(props) {
 
     const onDeleteItem = async () => {
-        let itemIndex = -1;
-        for (let i = 0; i < props.ItemsList.length; i++) {
-            if (props.ItemsList[i].ItemName == props.ItemName) itemIndex = i;
+        const resultFromServer = await Client.deleteItem(props.ItemName);
+        if ((await resultFromServer.status) == true) {
+            let itemIndex = -1;
+            for (let i = 0; i < props.ItemsList.length; i++) {
+                if (props.ItemsList[i].ItemName == props.ItemName) itemIndex = i;
+            }
+            props.ItemsList.splice(itemIndex, 1)
+            props.SetItemsList([...props.ItemsList]);
         }
-        props.ItemsList.splice(itemIndex, 1)
-        props.SetItemsList([...props.ItemsList]);
-        //await ItemClient.deleteTask(ItemName); // calling server
+        console.log(resultFromServer.code);
     }
 
     const onChangeItemStatus = async () => {
+
         //props.status = !props.status;
         //console.log(props.ItemName)
         //console.log(props.status);

@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import Item from "./Item/Item";
 import AddItemkBar from "./AddItemBar/AddItemBar";
 import ButtonsBar from "./ButtonsBar/ButtonsBar";
 import Pagination from "./Pagination/Pagination";
 import ItemList from "./ItemList/ItemList";
 import style from "./ItemsContainer.module.css";
+import Client from "../../ItemClients";
 
 function ItemsContainer() {
     const [inputValue, setInputValue] = useState("");
@@ -16,62 +16,44 @@ function ItemsContainer() {
         ((currentPage - 1) * itemsPerPage), (currentPage * itemsPerPage));
 
     useEffect(() => {
-      initClient();
+        initClient();
     }, []);
   
     const initClient = async () => {
-      //const tasks = await Client.getAllTasks();
-      const tasks = [];
-      setItemsList(tasks);
+      const resultFromServer = await Client.getAllItems();
+      if ((await resultFromServer.status) == true) {
+        const items = [];
+        for (const item in resultFromServer.task)
+            items.push(resultFromServer.task[item]);
+        setItemsList(items);
+      }
+      console.log(resultFromServer.code);
     };
 
-
-    // // check if string is valid pokemon id: positive integer
-    // const isValidPokemonId = (str) => {
-    //     if (!isNaN(str) && parseInt(Number(str)) == str &&
-    //         !isNaN(parseInt(str, 10)) && str > 0 && str < 900) return true;
-    //     return false;
-    // }
-
-    // // check if the input was a commas separated string
-    // const checkForCommas = (str) => {
-    //     if (str.indexOf(",") > -1) {
-    //         let nanFlag = false; // in case str is not a number
-    //         const tokens = str.split(",");
-    //         for (const token of tokens)
-    //             if (!isValidPokemonId(token)) nanFlag = true;
-    //         if (!nanFlag) {
-    //             // in case all the tokens are numbers then
-    //             // check again the string and fetching pokemons
-    //             // if not, just post the string as is
-    //             return tokens;
-    //         }
-    //     }
-    //     return str;
-    // }
-
     const addNewItem = async (itemName) => {
-        itemsList.push({ItemName: itemName, PokemonId: null, status: null});
-        setItemsList([...itemsList]);
-        const lastPage = Math.ceil(itemsList.length / 5);
-        if (lastPage > currentPage)
-            setCurrentPage(lastPage);
-        // send to server the data
+        const resultFromServer = await Client.addNewItem(itemName);
+        if ((await resultFromServer.status) == true) {
+            for (const item of resultFromServer.task)
+                itemsList.push({ItemName: item, PokemonId: null, status: null});
+            setItemsList([...itemsList]);
+            const lastPage = Math.ceil(itemsList.length / 5);
+            if (lastPage > currentPage)
+                setCurrentPage(lastPage);
+        }
+        console.log(resultFromServer.code);
     }
-
 
     return (
         <div className={style.itemsContainer}>
             <AddItemkBar
-            SetItemsList={setItemsList}
             SetInputLineValue={setInputValue}
             InputValue={inputValue}
             ItemsList={itemsList}
-            CurrentPage={currentPage}
-            SetCurrentPage={setCurrentPage}
             AddNewItem={addNewItem}
             ></AddItemkBar>
-            <ButtonsBar></ButtonsBar>
+            <ButtonsBar 
+            SetItemsList={setItemsList}
+            SetCurrentPage={setCurrentPage}></ButtonsBar>
             <ItemList 
             CurrentPageItems={currentPageItems}
             ItemsList={itemsList}

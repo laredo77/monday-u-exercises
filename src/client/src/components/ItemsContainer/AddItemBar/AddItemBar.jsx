@@ -1,6 +1,4 @@
 import style from "./AddItemBar.module.css";
-import Client from "../../../ItemClients";
-import ItemsContainer from "../ItemsContainer"
 
 const MAX_ITEMS = 35;
 
@@ -15,25 +13,12 @@ function AddItemBar(props) {
     }
     
     const addNewItem = async () => {
-        if (props.InputValue.trim().length === 0) {
-            alert("Undefined input");
-        }
-        else if (props.ItemsList.length === MAX_ITEMS) {
-            alert("ToDo list is full (35 Items)");
-        }
-        else {
-            // const resultFromServer = await Client.addNewTask(props.InputValue);
-            // if ((await resultFromServer.status) == false) {
-            //     console.log(resultFromServer.code);
-            // } else {
-            //     console.log(resultFromServer.code);
-            //     await ItemsContainer.addNewTaskScheme(resultFromServer.task, props);
-            // }
-            //const itemList = props.ItemsList;
+        if (props.InputValue.trim().length === 0)
+            console.log("Undefined input: Cannot add blank item");
+        else if (props.ItemsList.length === MAX_ITEMS)
+            console.log("ToDo list is full (35 Items)");
+        else
             await props.AddNewItem(props.InputValue);
-            //await ItemsContainer.addNewTaskScheme(props.InputValue, props); // should removed
-            //props.SetItemsList([...props.ItemsList, props.InputValue]);
-        }
         props.SetInputLineValue("");
     }
 
