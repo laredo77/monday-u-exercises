@@ -8,7 +8,7 @@ module.exports = class ItemManager {
   }
 
   async addNewItemScheme(item) {
-    // input is numbers, try to fetch pokemon and represent the data OR
+    // input is numbers, try to fetch pokemon and represent the data or
     // case the input is name of pokemon then fetch the data
     let newItem = { name: item, pokemonId: null, status: false };
     if (this.isValidPokemonId(item) || this.allPokemons.includes(item)) {
