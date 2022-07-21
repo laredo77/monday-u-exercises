@@ -7,70 +7,106 @@ module.exports = class ItemManager {
     this.fetchAllPokemons();
   }
 
-  async addNewTaskScheme(task) {
-    // input is numbers, try to fetch pokemon and represent the data OR
+  async addNewItemScheme(item) {
+    // input is numbers, try to fetch pokemon and represent the data or
     // case the input is name of pokemon then fetch the data
-    let newTask = { name: task, pokemonId: null };
-    if (this.isValidPokemonId(task) || this.allPokemons.includes(task)) {
+    let newItem = { name: item, pokemonId: null, status: false };
+    if (this.isValidPokemonId(item) || this.allPokemons.includes(item)) {
       try {
-        const pokemonData = await this.fetchPokemon(task);
+        const pokemonData = await this.fetchPokemon(item);
         if (pokemonData) {
-          newTask = {
+          newItem = {
             name: `Catch ${pokemonData.name}`,
             pokemonId: pokemonData.id,
+            status: false,
           };
         }
       } catch (error) {
-        console.log(
-          `Got an error while trying to fetch pokemon: ${error.message}`
-        );
+        console.log(`Error while trying to fetch pokemon: ${error.message}`);
       }
     }
     // check if the input already exist, if so, return
-    if (await this.checkForDuplicates(newTask.name)) {
-      console.log(`The task: ${newTask.name} already in the list`);
+    if (await this.checkForDuplicates(newItem.name)) {
+      console.log(`Item: {${newItem.name}}, already in the list`);
       return null;
     }
-    await this.addTaskToDB(newTask);
-    return newTask.name;
+    await this.addItemToDB(newItem);
+    return newItem;
   }
 
-  async addTaskToDB(task) {
+  async addItemToDB(item) {
     try {
       await Item.create({
-        ItemName: task.name,
-        PokemonId: task.pokemonId,
+        ItemName: item.name,
+        PokemonId: item.pokemonId,
+        status: item.status,
       });
     } catch (error) {
-      console.log(`couldn't write to the DB: ${error.message}`);
+      console.log(`Failed writing to the DB: ${error.message}`);
     }
   }
 
-  async checkInputString(taskToAdd) {
+  async checkInputString(itemToAdd) {
     // check if the input separate by commas in purpose
     // to fetch all pokemons (in case input is id's)
-    const res = this.checkForCommas(taskToAdd.name);
-    const tasksName = [];
+    const res = this.checkForCommas(itemToAdd.name);
+    const items = [];
     if (Array.isArray(res)) {
-      for (const task of res) {
-        const retVal = await this.addNewTaskScheme(task);
-        tasksName.push(retVal);
+      for (const item of res) {
+        const retVal = await this.addNewItemScheme(item);
+        items.push(retVal);
       }
     } else {
-      const retVal = await this.addNewTaskScheme(res);
-      tasksName.push(retVal);
+      const retVal = await this.addNewItemScheme(res);
+      items.push(retVal);
     }
-    if (tasksName.includes(null)) {
+
+    const itemsName = [];
+    for (const item of items) {
+      if (item === null) itemsName.push(item);
+      else itemsName.push(item.name);
+    }
+
+    if (itemsName[0] === null && itemsName.length == 1) {
       return {
-        task: tasksName,
+        item: items,
         status: false,
-        code: `Some of the tasks: ${taskToAdd.name} already in the list. cannot add duplicate tasks`,
+        code: `Item: {${itemToAdd.name}}, already in the list. Cannot add duplicate item`,
       };
     }
+    if (itemsName.includes(null)) {
+      if (itemsName.every((element) => element === null)) {
+        return {
+          item: items,
+          status: false,
+          code: `All items: {${itemToAdd.name}} already in the list. Cannot add duplicate items`,
+        };
+      } else {
+        const nullIndexs = [];
+        for (let i = 0; i < itemsName.length; i++) {
+          if (itemsName[i] === null) nullIndexs.push(i);
+        }
+        const nonNullItems = items.filter(function (item) {
+          return item != null;
+        });
+        const listOfItems = itemToAdd.name.split(",");
+        const nullItems = [];
+        for (const index of nullIndexs) nullItems.push(listOfItems[index]);
+        const nonNullItemsName = [];
+        for (const item of nonNullItems) nonNullItemsName.push(item.name);
+        const nullItemsName = [];
+        for (const item of nullItems) nullItemsName.push(item);
+        return {
+          item: nonNullItems,
+          status: true,
+          code: `Items: {${nullItemsName}} already in the list. Cannot add duplicate items; Items: {${nonNullItemsName}} added to the list`,
+        };
+      }
+    }
     return {
-      task: tasksName,
+      item: items,
       status: true,
-      code: `The tasks: ${tasksName}, added to the Todo list`,
+      code: `Items: {${itemsName}} added to the list`,
     };
   }
 
@@ -105,12 +141,12 @@ module.exports = class ItemManager {
 
   // function that check if the input allready exist
   // if so, alert the page the item display in
-  async checkForDuplicates(taskToAdd) {
-    const task = await Item.findOne({
-      where: { ItemName: taskToAdd },
+  async checkForDuplicates(itemToAdd) {
+    const item = await Item.findOne({
+      where: { ItemName: itemToAdd },
       raw: true,
     });
-    if (task) return true;
+    if (item) return true;
     return false;
   }
 
@@ -120,20 +156,20 @@ module.exports = class ItemManager {
     if (await pokemonData) return pokemonData;
   }
 
-  async deleteTask(task) {
+  async deleteItem(item) {
     try {
-      await Item.destroy({ where: { ItemName: task.name } });
+      await Item.destroy({ where: { ItemName: item.name } });
       return {
         status: true,
-        code: `The task: ${task.name} successfully removed`,
+        code: `Item: {${item.name}} successfully removed`,
       };
     } catch (error) {
       console.log(
-        `couldn't remove the task ${task.name} from the DB: ${error.message}`
+        `Could not remove the item {${item.name}} from the DB: ${error.message}`
       );
       return {
         status: false,
-        code: `couldn't remove the task ${task.name} from the DB: ${error.message}`,
+        code: `Could not remove the item {${item.name}} from the DB: ${error.message}`,
       };
     }
   }
@@ -147,69 +183,57 @@ module.exports = class ItemManager {
       this.allPokemons.push(pokemon.name);
   }
 
-  // get all tasks from the db
+  // get all items from the db
   async getAll() {
     try {
-      const tasksObjects = await Item.findAll({ raw: true });
-      const tasks = [];
-      for (const task of tasksObjects) tasks.push(task);
+      const items = await Item.findAll({ raw: true });
       return {
-        task: tasks,
+        item: items,
         status: true,
-        code: `feching all tasks from the list successfully`,
+        code: `Items were fetched successfully from the database`,
       };
     } catch (error) {
-      console.log(`Got an error trying to fetch from DB: ${error.message}`);
+      console.log(`Error trying to fetch from DB: ${error.message}`);
       return {
-        task: null,
+        item: null,
         status: false,
-        code: `Got an error trying to fetch from DB`,
+        code: `Error trying to fetch from DB: ${error.message}`,
       };
     }
   }
 
-  // delete all tasks from the db
-  async deleteAllTasks() {
+  // delete all items from the db
+  async deleteAllItems() {
     try {
       await Item.destroy({ where: {}, truncate: true });
       return {
         status: true,
-        code: `All tasks successfully removed`,
+        code: `All items successfully removed`,
       };
     } catch (error) {
-      console.log(
-        `Got an error trying to remove all tasks from DB: ${error.message}`
-      );
+      console.log(`Error trying to remove all items from DB: ${error.message}`);
       return {
         status: false,
-        code: `Got an error trying to remove all tasks from DB: ${error.message}`,
+        code: `Error trying to remove all items from DB: ${error.message}`,
       };
     }
   }
 
-  async changeStatus(task) {
+  async changeStatus(item) {
     try {
       await Item.update(
-        { status: task.status },
-        { where: { ItemName: task.task } }
+        { status: item.status },
+        { where: { ItemName: item.item } }
       );
       return {
         status: true,
-        code: `The status of ${task.task} changed successfully to ${task.status}`,
+        code: `The status of {${item.item}} successfully changed to ${item.status}`,
       };
     } catch (error) {
       return {
         status: false,
-        code: `couldn't change the status of the task: ${error.message}`,
+        code: `Could not change the status of {${error.message}}`,
       };
     }
-  }
-
-  async getTaskStatus(task) {
-    const item = await Item.findOne({
-      where: { ItemName: task.task },
-      raw: true,
-    });
-    return item.status;
   }
 };

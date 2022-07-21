@@ -5,13 +5,13 @@ module.exports = class PokemonClient {
     this.url = "https://pokeapi.co/api/v2/pokemon/";
   }
 
-  async getPokemonData(pokemonId) {
+  async getPokemonData(pokemon) {
     try {
       const response = await axios.get(
-        `https://pokeapi.co/api/v2/pokemon/${pokemonId}`
+        `https://pokeapi.co/api/v2/pokemon/${pokemon}`
       );
-      const pokemon = await response.data;
-      return pokemon;
+      const res = await response.data;
+      return res;
     } catch (err) {
       console.log(err);
     }
@@ -22,7 +22,7 @@ module.exports = class PokemonClient {
     const response = await axios.get(tmpUrl);
 
     if (response.status == 404 || response.statusText == "Not Found") {
-      alert("Failed to fetch all pokemons.");
+      console.log("Failed to fetch all pokemons.");
       return;
     }
 
