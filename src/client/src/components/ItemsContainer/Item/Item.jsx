@@ -34,14 +34,16 @@ function Item(props) {
     }
 
     const onClickedItem = async () => {
-        const itemTokens = props.ItemName.split(" ");
-        const resultFromServer = await Client.fetchPokemon(itemTokens[1]);
-        props.Pokemon.name = resultFromServer.name;
-        props.Pokemon.type = resultFromServer.types[0].type.name;
-        props.Pokemon.img = resultFromServer.sprites.other.dream_world.front_default;
-        props.Pokemon.weight = resultFromServer.weight / 10;
-        props.Pokemon.height = resultFromServer.height / 10;
-        props.SetTrigger(true);
+        if (props.PokemonId !== null) {
+            const itemTokens = props.ItemName.split(" ");
+            const resultFromServer = await Client.fetchPokemon(itemTokens[1]);
+            props.Pokemon.name = resultFromServer.name;
+            props.Pokemon.type = resultFromServer.types[0].type.name;
+            props.Pokemon.img = resultFromServer.sprites.other.dream_world.front_default;
+            props.Pokemon.weight = resultFromServer.weight / 10;
+            props.Pokemon.height = resultFromServer.height / 10;
+            props.SetTrigger(true);
+        }
     }
 
     return (

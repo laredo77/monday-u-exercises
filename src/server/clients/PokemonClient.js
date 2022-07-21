@@ -22,7 +22,7 @@ module.exports = class PokemonClient {
     const response = await axios.get(tmpUrl);
 
     if (response.status == 404 || response.statusText == "Not Found") {
-      alert("Failed to fetch all pokemons.");
+      console.log("Failed to fetch all pokemons.");
       return;
     }
 

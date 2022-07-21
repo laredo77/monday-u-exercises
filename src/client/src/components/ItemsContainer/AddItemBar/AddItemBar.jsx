@@ -15,11 +15,11 @@ function AddItemBar(props) {
     
     const addNewItem = async () => {
         if (props.InputValue.trim().length === 0)
-            props.SetConsoleLine("Undefined input: Cannot add blank item");
+            props.SetConsoleLine("Task name must be provided");
         else if (props.ItemsList.length === MAX_ITEMS)
-            props.SetConsoleLine("ToDo list is full (35 Items)");
+            props.SetConsoleLine("List is full (35 Items)");
         else if (props.InputValue.length >= MAX_CHARS)
-            props.SetConsoleLine("Cannot add item with more then 30 letters length");
+            props.SetConsoleLine("Item name must be shorter than 30 letters");
         else
             await props.AddNewItem(props.InputValue);
         props.SetInputLineValue("");

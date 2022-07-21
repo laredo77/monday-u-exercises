@@ -24,9 +24,10 @@ function ItemsContainer(props) {
       const resultFromServer = await Client.getAllItems();
       if ((await resultFromServer.status) == true) {
         const items = [];
-        for (const item in resultFromServer.task) {
-            items.push({ItemName: resultFromServer.task[item].ItemName,
-                status: Boolean(resultFromServer.task[item].status),
+        for (const item in resultFromServer.item) {
+            items.push({ItemName: resultFromServer.item[item].ItemName,
+                status: Boolean(resultFromServer.item[item].status),
+                PokemonId: resultFromServer.item[item].PokemonId,
                 })
         }  
         setItemsList(items);
@@ -37,10 +38,12 @@ function ItemsContainer(props) {
     const addNewItem = async (itemName) => {
         const resultFromServer = await Client.addNewItem(itemName);
         if ((await resultFromServer.status) == true) {
-            for (const item of resultFromServer.task)
+            for (const item of resultFromServer.item) {
                 itemsList.push({
-                    ItemName: item,
-                    status: false});
+                    ItemName: item.name,
+                    PokemonId: item.pokemonId,
+                    status: item.status});
+            }
             setItemsList([...itemsList]);
             const lastPage = Math.ceil(itemsList.length / 5);
             if (lastPage > currentPage)

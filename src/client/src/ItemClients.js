@@ -1,6 +1,6 @@
 export class ItemClients {
   static async getAllItems() {
-    const response = await fetch("http://localhost:8080/tasks/all", {
+    const response = await fetch("http://localhost:8080/items/all", {
       method: "GET",
       headers: {
         Accept: "application/json",
@@ -11,7 +11,7 @@ export class ItemClients {
   }
 
   static async addNewItem(item) {
-    const response = await fetch("http://localhost:8080/tasks/", {
+    const response = await fetch("http://localhost:8080/items/", {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -23,7 +23,7 @@ export class ItemClients {
   }
 
   static async deleteItem(item) {
-    const response = await fetch("http://localhost:8080/tasks/", {
+    const response = await fetch("http://localhost:8080/items/", {
       method: "DELETE",
       headers: {
         Accept: "application/json",
@@ -35,7 +35,7 @@ export class ItemClients {
   }
 
   static async deleteAllItems() {
-    const response = await fetch("http://localhost:8080/tasks/all", {
+    const response = await fetch("http://localhost:8080/items/all", {
       method: "DELETE",
       headers: {
         Accept: "application/json",
@@ -46,14 +46,14 @@ export class ItemClients {
   }
 
   static async changeItemStatus(item) {
-    const response = await fetch("http://localhost:8080/tasks/status", {
+    const response = await fetch("http://localhost:8080/items/status", {
       method: "PUT",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        task: item.ItemName,
+        item: item.ItemName,
         status: item.status,
       }),
     });
@@ -61,7 +61,7 @@ export class ItemClients {
   }
 
   static async fetchPokemon(pokemon) {
-    const response = await fetch("http://localhost:8080/tasks/pokemon", {
+    const response = await fetch("http://localhost:8080/items/pokemon", {
       method: "POST",
       headers: {
         Accept: "application/json",

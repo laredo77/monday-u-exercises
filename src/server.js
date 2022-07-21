@@ -9,7 +9,7 @@ const app = express();
 const cors = require("cors");
 
 app.use([logger, cors(), compression(), express.json()]);
-app.use("/tasks", todoRouter);
+app.use("/items", todoRouter);
 
 app.listen(port, () => {
   console.log("Server started on port", port);

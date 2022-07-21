@@ -8,6 +8,7 @@ function ItemList(props) {
                 return (
                     <Item key={item.ItemName}
                         ItemName={item.ItemName}
+                        PokemonId={item.PokemonId}
                         status={item.status}
                         ItemsList={props.ItemsList}
                         SetItemsList={props.SetItemsList}
