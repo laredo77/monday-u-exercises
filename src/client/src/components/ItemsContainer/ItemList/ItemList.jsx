@@ -13,7 +13,10 @@ function ItemList(props) {
                         SetItemsList={props.SetItemsList}
                         SetConsoleLine={props.SetConsoleLine}
                         SetCurrentPage={props.SetCurrentPage}
-                        CurrentPage={props.CurrentPage}>
+                        CurrentPage={props.CurrentPage}
+                        Trigger={props.Trigger} 
+                        SetTrigger={props.SetTrigger}
+                        Pokemon={props.Pokemon}>
                     </Item>
                 )
             })}

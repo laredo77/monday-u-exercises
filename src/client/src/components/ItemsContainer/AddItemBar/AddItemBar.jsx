@@ -27,7 +27,7 @@ function AddItemBar(props) {
 
     return (
         <div className={style.addItemBar}>
-            <input id="input" type="text" placeholder="Task to be done.."
+            <input id="input" type="text" placeholder="Task to be done.." autoComplete="off"
             onChange={onChangeInputLine} onKeyPress={onKeyPress} value={props.InputValue}></input>
             <button id="addItemBar" onClick={addNewItem}>Add</button>
         </div>

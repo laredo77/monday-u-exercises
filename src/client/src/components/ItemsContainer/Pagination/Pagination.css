@@ -1,52 +1,6 @@
-/* .pagination {
-    position: relative;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    height: 90px;
-}
-  
-.pagination button {
-    width: 50px;
-    height: 50px;
-    appearance: none;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    background-color: #44AAEE;
-    margin: 5px;
-    transition: 0.4s;
-    color: #FFF;
-    font-size: 18px;
-    text-shadow: 0px 0px 4px rgba(0, 0, 0, 0.2);
-    box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.2);
-}
-  
-.pagination button:hover {
-    background-color: #44EEAA;
-}
-  
-.paginationActive button {
-    background-color: #44EEAA;
-    box-shadow: inset 0px 0px 4px rgba(0, 0, 0, 0.2);
-}
-
-.paginationDisabled button {
-    background-color: #44AAEE;
-    box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.2);
-} */
-
-
 .paginationBttns {
-    /* width: 80%;
-    height: 40px;
     list-style: none;
-    display: flex;
-    justify-content: center;
-    margin-top: 20px; */
-    list-style: none;
-    height: 90px;
+    height: 60px;
     position: relative;
     display: flex;
     flex-wrap: wrap;
@@ -55,14 +9,6 @@
   }
   
   .paginationBttns a {
-    /* padding: 10px;
-    margin: 8px;
-    border-radius: 5px;
-    border: 1px solid #2b2eff;
-    color: #2b2eff;
-    cursor: pointer; */
-    width: 50px;
-    height: 50px;
     border-radius: 5px;
     border: 1px solid;
     cursor: pointer;
@@ -70,27 +16,21 @@
     margin: 5px;
     transition: 0.4s;
     color: #FFF;
-    font-size: 18px;
+    font-size: 25px;
     text-shadow: 0px 0px 4px rgba(0, 0, 0, 0.2);
     box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.2);
   }
   
   .paginationBttns a:hover {
-    /* color: white;
-    background-color: #2b2eff; */
     background-color: #44EEAA;
   }
   
   .paginationActive a {
-    /* color: white;
-    background-color: #2b2eff; */
     background-color: #44EEAA;
     box-shadow: inset 0px 0px 4px rgba(0, 0, 0, 0.2);
   }
   
   .paginationDisabled a {
-    /* color: grey;
-    background-color: grey; */
     background-color: #44AAEE;
     box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.2);
   }

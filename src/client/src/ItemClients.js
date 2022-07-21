@@ -59,6 +59,18 @@ export class ItemClients {
     });
     return await response.json();
   }
+
+  static async fetchPokemon(pokemon) {
+    const response = await fetch("http://localhost:8080/tasks/pokemon", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({pokemon}),
+    });
+    return await response.json();
+  }
 }
 
 export default ItemClients;

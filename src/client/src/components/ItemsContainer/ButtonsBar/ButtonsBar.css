@@ -17,6 +17,9 @@
     color: #ffffff;
     cursor: pointer;
     outline: none;
+    display: block;
+    margin-left: auto;
+    margin-right: 3%;
   }
 
   .terminalContainer {
@@ -50,7 +53,7 @@
   
   .fakeMenu {
     position: center;
-    width: 323px;
+    width: 365px;
     box-sizing: border-box;
     height: 10px;
     top: 0px;
@@ -62,10 +65,10 @@
   }
   
   .fakeScreen {
-    position: relative;
+    position: center;
     background-color: #151515;
     box-sizing: border-box;
-    width: 323px;
+    width: 365px;
     height: 55px;
     margin: 0 auto;
     margin-bottom: 0 auto;
@@ -86,14 +89,9 @@
     /* white-space: nowrap; */
     white-space: initial;
     overflow-y: hidden;
-    width: 286px;
+    width: 315px;
     height: 45px;
   }
-  
-  /* span {
-    color: rgb(11, 11, 11);
-    font-weight: bold;
-  } */
   
   .line1 {
     color: #9CD9F0;
@@ -184,24 +182,24 @@
   
   @-webkit-keyframes type {
     to {
-      width: 22em;
+      width: 25em;
     }
   }
   
   @-moz-keyframes type {
     to {
-      width: 22em;
+      width: 25em;
     }
   }
   
   @-o-keyframes type {
     to {
-      width: 22em;
+      width: 25em;
     }
   }
   
   @keyframes type {
     to {
-      width: 22em;
+      width: 25em;
     }
   }

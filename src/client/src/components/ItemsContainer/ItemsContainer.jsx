@@ -6,15 +6,16 @@ import ItemList from "./ItemList/ItemList";
 import style from "./ItemsContainer.module.css";
 import Client from "../../ItemClients";
 
-function ItemsContainer() {
+function ItemsContainer(props) {
     const [inputValue, setInputValue] = useState("");
     const [itemsList, setItemsList] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [consoleLine, setConsoleLine] = useState("");
-
     const itemsPerPage = 5;
+
     let currentPageItems = itemsList.slice(
         ((currentPage - 1) * itemsPerPage), (currentPage * itemsPerPage));
+
     useEffect(() => {
         initClient();
     }, []);
@@ -24,7 +25,6 @@ function ItemsContainer() {
       if ((await resultFromServer.status) == true) {
         const items = [];
         for (const item in resultFromServer.task) {
-            //items.push(resultFromServer.task[item]);
             items.push({ItemName: resultFromServer.task[item].ItemName,
                 status: Boolean(resultFromServer.task[item].status),
                 })
@@ -51,31 +51,20 @@ function ItemsContainer() {
 
     return (
         <div className={style.itemsContainer}>
-            <AddItemkBar
-            SetInputLineValue={setInputValue}
-            InputValue={inputValue}
-            ItemsList={itemsList}
-            AddNewItem={addNewItem}
-            SetConsoleLine={setConsoleLine}
+            <AddItemkBar SetInputLineValue={setInputValue} InputValue={inputValue}
+            ItemsList={itemsList} AddNewItem={addNewItem} SetConsoleLine={setConsoleLine}
             ></AddItemkBar>
-            <ButtonsBar 
-            SetItemsList={setItemsList}
-            SetCurrentPage={setCurrentPage}
-            ConsoleLine={consoleLine}
-            SetConsoleLine={setConsoleLine}>
+            <ButtonsBar SetItemsList={setItemsList} SetCurrentPage={setCurrentPage}
+            ConsoleLine={consoleLine} SetConsoleLine={setConsoleLine}>
             </ButtonsBar>
-            <ItemList 
-            CurrentPageItems={currentPageItems}
-            ItemsList={itemsList}
-            SetItemsList={setItemsList}
-            SetConsoleLine={setConsoleLine}
-            SetCurrentPage={setCurrentPage}
-            CurrentPage={currentPage}>
+            <ItemList CurrentPageItems={currentPageItems} ItemsList={itemsList}
+            SetItemsList={setItemsList} SetConsoleLine={setConsoleLine}
+            SetCurrentPage={setCurrentPage} CurrentPage={currentPage} Trigger={props.Trigger} 
+            SetTrigger={props.SetTrigger} Pokemon={props.Pokemon}>
             </ItemList>
-            <Pagination 
-            ItemsList={itemsList}
-            SetCurrentPage={setCurrentPage}
-            CurrentPage={currentPage}></Pagination>
+            <Pagination ItemsList={itemsList} SetCurrentPage={setCurrentPage}
+            CurrentPage={currentPage}>
+            </Pagination>
         </div>
     )
 }

@@ -1,8 +1,5 @@
 import style from "./ButtonsBar.css";
 import Client from "../../../ItemClients";
-// import Box from "monday-ui-react-core/dist/Box";
-// import "monday-ui-react-core/dist/main.css";
-// import { DialogContentContainer } from "monday-ui-react-core";
 
 function ButtonsBar(props) {
 

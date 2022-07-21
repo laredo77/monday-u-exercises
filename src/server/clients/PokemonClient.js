@@ -5,13 +5,13 @@ module.exports = class PokemonClient {
     this.url = "https://pokeapi.co/api/v2/pokemon/";
   }
 
-  async getPokemonData(pokemonId) {
+  async getPokemonData(pokemon) {
     try {
       const response = await axios.get(
-        `https://pokeapi.co/api/v2/pokemon/${pokemonId}`
+        `https://pokeapi.co/api/v2/pokemon/${pokemon}`
       );
-      const pokemon = await response.data;
-      return pokemon;
+      const res = await response.data;
+      return res;
     } catch (err) {
       console.log(err);
     }

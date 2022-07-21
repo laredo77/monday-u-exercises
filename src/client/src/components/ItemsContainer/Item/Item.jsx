@@ -33,12 +33,23 @@ function Item(props) {
         props.SetConsoleLine(resultFromServer.code);
     }
 
+    const onClickedItem = async () => {
+        const itemTokens = props.ItemName.split(" ");
+        const resultFromServer = await Client.fetchPokemon(itemTokens[1]);
+        props.Pokemon.name = resultFromServer.name;
+        props.Pokemon.type = resultFromServer.types[0].type.name;
+        props.Pokemon.img = resultFromServer.sprites.other.dream_world.front_default;
+        props.Pokemon.weight = resultFromServer.weight / 10;
+        props.Pokemon.height = resultFromServer.height / 10;
+        props.SetTrigger(true);
+    }
+
     return (
         <div className={style.item}>
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" />
             <input className={style.checkbox} checked={props.status} type="checkbox" id="checkbox"
             onChange={onChangeItemStatus}/>
-            <span className={style.itemname} id="taskname">{props.ItemName}</span>
+            <span className={style.itemname} id="taskname" onClick={onClickedItem}>{props.ItemName}</span>
             <button className={"delete"} onClick={() => onDeleteItem()}>
                 <i className="far fa-trash-alt"></i>
             </button>

@@ -8,7 +8,7 @@ async function getAllTasks(req, res) {
 }
 
 async function fetchPokemon(req, res) {
-  const response = await itemManager.fetchPokemon(req.body.pokemonId);
+  const response = await itemManager.fetchPokemon(req.body.pokemon);
   res.status(200).json(response);
 }
 
